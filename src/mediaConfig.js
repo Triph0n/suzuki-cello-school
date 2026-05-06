@@ -1,15 +1,26 @@
-const preTwinkleFiles = import.meta.glob('./video/Suzuki Pre-Twilnkle/*.*', { eager: true, query: '?url', import: 'default' });
-const preTwinkleMp3Files = import.meta.glob('./mp3/Twinkle assembly Cello Tracks/*.*', { eager: true, query: '?url', import: 'default' });
-const checkpointsFiles = import.meta.glob('./video/Cello Technique Checkpoints/*.*', { eager: true, query: '?url', import: 'default' });
-const joggersFiles = import.meta.glob('./video/Cello Time Joggers Video/*.*', { eager: true, query: '?url', import: 'default' });
-const booksLibraryFiles = import.meta.glob('./books/**/*.pdf', { eager: true, query: '?url', import: 'default' });
-const suzukiMp3OfficialFiles = import.meta.glob('./mp3/Suzuki mp3 Official/**/*.*', { eager: true, query: '?url', import: 'default' });
+import manifest from './mediaManifest.json';
 
-export const combinedPreTwinkleFiles = { ...preTwinkleFiles, ...preTwinkleMp3Files };
-export const allCheckpointsFiles = checkpointsFiles;
-export const allJoggersFiles = joggersFiles;
-export const allBooksFiles = booksLibraryFiles;
-export const allSuzukiMp3OfficialFiles = suzukiMp3OfficialFiles;
+const R2_BASE_URL = 'https://pub-233a23b1da6848efbba76e32a189c7bc.r2.dev';
+
+function mapToR2(fileObj) {
+  const mapped = {};
+  for (const [key, val] of Object.entries(fileObj)) {
+    // val is like "./video/Suzuki Pre-Twilnkle/file.mp4"
+    // we want to convert it to R2_BASE_URL + "/video/Suzuki Pre-Twilnkle/file.mp4"
+    const cleanPath = val.replace(/^\.\//, '/'); 
+    // Encode the URI to handle spaces and special characters, except for the slashes
+    const parts = cleanPath.split('/');
+    const encodedParts = parts.map(part => encodeURIComponent(part));
+    mapped[key] = R2_BASE_URL + encodedParts.join('/');
+  }
+  return mapped;
+}
+
+export const combinedPreTwinkleFiles = mapToR2({ ...manifest.preTwinkleFiles, ...manifest.preTwinkleMp3Files });
+export const allCheckpointsFiles = mapToR2(manifest.checkpointsFiles);
+export const allJoggersFiles = mapToR2(manifest.joggersFiles);
+export const allBooksFiles = mapToR2(manifest.booksLibraryFiles);
+export const allSuzukiMp3OfficialFiles = mapToR2(manifest.suzukiMp3OfficialFiles);
 
 export const allMediaFiles = {
   ...combinedPreTwinkleFiles,
@@ -22,8 +33,14 @@ export const allMediaFiles = {
 // Helper to format filenames for clean UI display
 export function formatMediaName(path) {
   const parts = path.split('/');
-  const filename = parts.pop();
+  const filenameWithQuery = parts.pop();
+  const filename = filenameWithQuery.split('?')[0];
   let name = filename.replace(/\.(mp4|m4v|pdf|avi|mov|mp3|wav)$/i, '');
+  try {
+    name = decodeURIComponent(name);
+  } catch (e) {
+    // Ignore decoding errors
+  }
   name = name.replace(/^Exercise\s+(No\.?\s*)?/i, '');
   name = name.replace(/\s*Cello Time Joggers.*/i, '');
   return name.trim();
