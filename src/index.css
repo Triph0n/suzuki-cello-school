@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #fcf6ed;
+  --color-surface: #fcf6ed;
+  --color-surface-bright: #fcf6ed;
+  --color-surface-dim: #dad4c8;
+  --color-surface-container: #eee7dd;
+  --color-surface-container-low: #f6f0e6;
+  --color-surface-container-high: #e8e2d7;
+  --color-surface-container-highest: #e2dcd1;
+  --color-surface-variant: #e2dcd1;
+
+  --color-primary: #994100;
+  --color-primary-dim: #863800;
+  --color-primary-container: #ff8439;
+  --color-on-primary-container: #471a00;
+  --color-on-primary: #fff0e9;
+  --color-primary-fixed-dim: #ee772d;
+  
+  --color-secondary: #52603b;
+  --color-secondary-container: #d7e9b9;
+  --color-on-secondary-container: #485732;
+  --color-on-secondary: #e8f9c9;
+  --color-secondary-fixed-dim: #c9dbac;
+
+  --color-tertiary: #186474;
+  --color-tertiary-container: #a7eafd;
+  --color-on-tertiary-container: #005868;
+  --color-on-tertiary-fixed-variant: #156273;
+  --color-on-tertiary: #def7ff;
+
+  --color-outline-variant: #b1aca4;
+  --color-on-surface-variant: #5e5b54;
+  --color-on-background: #312e29;
+
+  --font-headline: "Noto Serif", serif;
+  --font-display: "Noto Serif", serif;
+  --font-body: "Plus Jakarta Sans", sans-serif;
+  --font-label: "Plus Jakarta Sans", sans-serif;
+
+  --radius-xl: 3rem;
+}
+
+@layer utilities {
+  .watercolor-bg {
+    background-image: radial-gradient(circle at 20% 30%, var(--theme(--color-surface-container-low)) 0%, transparent 40%), 
+                      radial-gradient(circle at 80% 70%, var(--theme(--color-surface-container)) 0%, transparent 40%);
+  }
+
+  .grainy-texture {
+    position: relative;
+  }
+  .grainy-texture::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    pointer-events: none;
+    background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAYDvHT6ag77inn7KLqn9c5afBOsxCSnE6bFKfu1ni1n4pDQpHBxGL3SAX0B6Un7-z_IqZOm08-8O44SN1TSm0o_a5DRA82WSAWlCT40TsuuxJENs1TFQ-u27VA0v_IbbURyTweWMEwqFUY6fHIxczxoIZ-0olsEGFkVKwDxIHVbvmCtNLJWK18AlEoMkCaiHC4s82pYVb0i4J379OMCxyXLFW_pQl9HTxK5EO0_w4UGSnkJxN5X5E5_AO7KOU4EDX5D-VVkE1GPZo");
+  }
+}
+
+body {
+  min-height: max(884px, 100dvh);
+}
+
