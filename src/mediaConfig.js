@@ -1,6 +1,7 @@
 import manifest from './mediaManifest.json';
 
-const R2_BASE_URL = 'https://pub-233a23b1da6848efbba76e32a189c7bc.r2.dev';
+// We now use the Cloudflare Pages Function endpoint instead of the direct R2 URL
+const R2_BASE_URL = "/api/media";
 
 function mapToR2(fileObj) {
   const mapped = {};
