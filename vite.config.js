@@ -8,4 +8,13 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    proxy: {
+      '/api/media': {
+        target: 'https://ff8a3da5.suzuki-cello-school.pages.dev',
+        changeOrigin: true,
+        secure: true,
+      }
+    }
+  }
 })

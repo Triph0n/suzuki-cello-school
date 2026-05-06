@@ -52,6 +52,15 @@ export default function TeacherDashboard() {
 
   const [assignModalStudentId, setAssignModalStudentId] = useState(null);
   const [assignModalActiveTab, setAssignModalActiveTab] = useState('pretwinkle');
+
+  // Add Student modal states
+  const [addStudentModalOpen, setAddStudentModalOpen] = useState(false);
+  const [newStudentName, setNewStudentName] = useState("");
+
+  // Add Material modal states
+  const [addMaterialModalOpen, setAddMaterialModalOpen] = useState(false);
+  const [newMaterialTitle, setNewMaterialTitle] = useState("");
+  const [newMaterialCategory, setNewMaterialCategory] = useState("PDF");
   
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -137,10 +146,11 @@ export default function TeacherDashboard() {
     await updateStudentVideos(studentId, assignedVideos);
   };
 
-  const handleAddStudent = async () => {
-    const name = window.prompt("Zadejte jméno nového žáka:");
-    if (!name) return;
-    await addStudent(name);
+  const handleSaveNewStudent = async (e) => {
+    e.preventDefault();
+    if (!newStudentName.trim()) return;
+    await addStudent(newStudentName.trim());
+    setAddStudentModalOpen(false);
   };
 
   const handleRemoveStudent = async (studentId, e) => {
@@ -150,13 +160,12 @@ export default function TeacherDashboard() {
     if (selectedStudentId === studentId) setSelectedStudentId(null);
   };
 
-  const handleAddMaterial = async () => {
-    const title = window.prompt("Zadejte název materiálu:");
-    if (!title) return;
-    const category = window.prompt("Zadejte kategorii (např. PDF, Link):", "PDF");
-    const newMaterial = { title, category };
-    
-    await addMaterial(newMaterial);
+  const handleSaveNewMaterial = async (e) => {
+    e.preventDefault();
+    if (!newMaterialTitle.trim()) return;
+    const category = newMaterialCategory.trim() || "PDF";
+    await addMaterial({ title: newMaterialTitle.trim(), category });
+    setAddMaterialModalOpen(false);
   };
 
   const handleRemoveMaterial = async (materialId) => {
@@ -224,7 +233,7 @@ export default function TeacherDashboard() {
         
         {!selectedStudentId && (
           <button 
-            onClick={handleAddStudent}
+            onClick={() => { setAddStudentModalOpen(true); setNewStudentName(""); }}
             className="flex items-center gap-2 px-5 py-3 bg-primary hover:bg-primary-dim text-on-primary border-none rounded-xl font-bold cursor-pointer transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-1"
           >
             <UserPlus size={20} />
@@ -378,7 +387,7 @@ export default function TeacherDashboard() {
             <div className="flex justify-between items-center mb-6">
               <h2 className="font-headline text-2xl font-bold text-on-background">My Materials</h2>
                <button 
-                 onClick={handleAddMaterial}
+                 onClick={() => { setAddMaterialModalOpen(true); setNewMaterialTitle(""); setNewMaterialCategory("PDF"); }}
                  className="p-2 bg-secondary-container hover:bg-secondary-fixed-dim text-on-secondary-container rounded-lg transition-colors shadow-sm"
                  title="Add material"
                >
@@ -525,6 +534,110 @@ export default function TeacherDashboard() {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ADD STUDENT MODAL */}
+      {addStudentModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setAddStudentModalOpen(false)} />
+          <div className="bg-surface-container-low border border-outline-variant/30 rounded-[2rem] w-full max-w-md shadow-2xl z-10 overflow-hidden transform transition-all flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b border-outline-variant/20 bg-surface-container">
+              <h2 className="font-headline text-2xl font-bold text-on-background flex items-center gap-2">
+                <UserPlus size={24} className="text-tertiary" />
+                Přidat žáka
+              </h2>
+              <button onClick={() => setAddStudentModalOpen(false)} className="p-2 hover:bg-surface-variant text-on-surface-variant rounded-full transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveNewStudent} className="p-6 flex flex-col gap-6">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Jméno žáka</label>
+                <input 
+                  type="text" 
+                  required
+                  autoFocus
+                  value={newStudentName}
+                  onChange={e => setNewStudentName(e.target.value)}
+                  placeholder="Zadejte jméno nového žáka..."
+                  className="px-4 py-3 rounded-xl border border-outline-variant bg-surface-container text-on-background focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors w-full"
+                />
+              </div>
+              <div className="pt-2 flex gap-3">
+                <button 
+                  type="button" 
+                  onClick={() => setAddStudentModalOpen(false)}
+                  className="flex-1 py-3 px-4 bg-surface-variant hover:bg-outline-variant/30 text-on-surface-variant font-bold rounded-xl transition-colors"
+                >
+                  Zrušit
+                </button>
+                <button 
+                  type="submit" 
+                  className="flex-1 py-3 px-4 bg-primary hover:bg-primary-dim text-on-primary font-bold rounded-xl transition-colors shadow-sm"
+                >
+                  Přidat
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ADD MATERIAL MODAL */}
+      {addMaterialModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setAddMaterialModalOpen(false)} />
+          <div className="bg-surface-container-low border border-outline-variant/30 rounded-[2rem] w-full max-w-md shadow-2xl z-10 overflow-hidden transform transition-all flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b border-outline-variant/20 bg-surface-container">
+              <h2 className="font-headline text-2xl font-bold text-on-background flex items-center gap-2">
+                <Book size={24} className="text-tertiary" />
+                Přidat materiál
+              </h2>
+              <button onClick={() => setAddMaterialModalOpen(false)} className="p-2 hover:bg-surface-variant text-on-surface-variant rounded-full transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveNewMaterial} className="p-6 flex flex-col gap-6">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Název materiálu</label>
+                <input 
+                  type="text" 
+                  required
+                  autoFocus
+                  value={newMaterialTitle}
+                  onChange={e => setNewMaterialTitle(e.target.value)}
+                  placeholder="Např. Stupnice C dur..."
+                  className="px-4 py-3 rounded-xl border border-outline-variant bg-surface-container text-on-background focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors w-full"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Kategorie</label>
+                <input 
+                  type="text" 
+                  value={newMaterialCategory}
+                  onChange={e => setNewMaterialCategory(e.target.value)}
+                  placeholder="Např. PDF, Link, Video..."
+                  className="px-4 py-3 rounded-xl border border-outline-variant bg-surface-container text-on-background focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors w-full"
+                />
+              </div>
+              <div className="pt-2 flex gap-3">
+                <button 
+                  type="button" 
+                  onClick={() => setAddMaterialModalOpen(false)}
+                  className="flex-1 py-3 px-4 bg-surface-variant hover:bg-outline-variant/30 text-on-surface-variant font-bold rounded-xl transition-colors"
+                >
+                  Zrušit
+                </button>
+                <button 
+                  type="submit" 
+                  className="flex-1 py-3 px-4 bg-primary hover:bg-primary-dim text-on-primary font-bold rounded-xl transition-colors shadow-sm"
+                >
+                  Přidat
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
