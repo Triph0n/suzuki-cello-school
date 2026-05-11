@@ -3,16 +3,25 @@ import manifest from './mediaManifest.json';
 // We now use the Cloudflare Pages Function endpoint instead of the direct R2 URL
 const R2_BASE_URL = "/api/media";
 
+// R2 bucket uses 'Video/' (capital V) but manifest has lowercase 'video/'
+// This map corrects the casing for each top-level folder
+const R2_FOLDER_MAP = {
+  'video': 'Video',
+};
+
 function mapToR2(fileObj) {
   const mapped = {};
   for (const [key, val] of Object.entries(fileObj)) {
     // val is like "./video/Suzuki Pre-Twilnkle/file.mp4"
-    // we want to convert it to R2_BASE_URL + "/video/Suzuki Pre-Twilnkle/file.mp4"
-    const cleanPath = val.replace(/^\.\//, '/'); 
-    // Encode the URI to handle spaces and special characters, except for the slashes
+    const cleanPath = val.replace(/^\.\//, ''); // remove leading ./
     const parts = cleanPath.split('/');
+    // Correct top-level folder casing to match R2 bucket keys
+    if (parts[0] && R2_FOLDER_MAP[parts[0]]) {
+      parts[0] = R2_FOLDER_MAP[parts[0]];
+    }
+    // Encode each segment to handle spaces and special characters
     const encodedParts = parts.map(part => encodeURIComponent(part));
-    mapped[key] = R2_BASE_URL + encodedParts.join('/');
+    mapped[key] = R2_BASE_URL + '/' + encodedParts.join('/');
   }
   return mapped;
 }

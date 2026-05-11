@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { subscribeToStudents, getStudents } from "../api";
 import { Play, X, Headphones, FileText } from "lucide-react";
 import { allMediaFiles } from "../mediaConfig";
@@ -9,6 +9,22 @@ export default function StudentDashboard() {
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [playingVideo, setPlayingVideo] = useState(null);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const audioRef = useRef(null);
+
+  const handleSpeedChange = (e) => {
+    const speed = parseFloat(e.target.value);
+    setPlaybackSpeed(speed);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = speed;
+    }
+  };
+
+  const handleAudioLoad = () => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = playbackSpeed;
+    }
+  };
 
   const getMediaType = (path) => {
     if (!path) return 'video';
@@ -120,11 +136,26 @@ export default function StudentDashboard() {
                    <iframe src={videoUrl} className="w-full h-full border-none rounded-xl bg-white shadow-md" title={playingVideo.title} />
                  ) : type === 'audio' ? (
                    <div className="w-full h-full flex flex-col items-center justify-center gap-8 bg-surface-container rounded-2xl">
-                      <div className="p-8 bg-surface-variant rounded-full shadow-inner animate-pulse">
-                        <Headphones size={64} className="text-amber-500" />
-                      </div>
-                      <audio src={videoUrl} controls autoPlay className="w-full max-w-md shadow-md rounded-full" />
-                   </div>
+                       <div className="p-8 bg-surface-variant rounded-full shadow-inner animate-pulse">
+                         <Headphones size={64} className="text-amber-500" />
+                       </div>
+                       <audio ref={audioRef} onLoadedData={handleAudioLoad} src={videoUrl} controls autoPlay className="w-full max-w-md shadow-md rounded-full" />
+                       <div className="flex items-center gap-4 bg-surface-container-low p-4 rounded-xl border border-outline-variant/30 shadow-sm mt-4">
+                          <label htmlFor="speed" className="font-bold text-on-surface-variant">Rychlost:</label>
+                          <select 
+                            id="speed"
+                            value={playbackSpeed}
+                            onChange={handleSpeedChange}
+                            className="bg-surface-variant text-on-surface p-2 rounded-lg border-none focus:ring-2 focus:ring-primary outline-none cursor-pointer font-medium"
+                          >
+                            <option value="0.5">0.5x</option>
+                            <option value="0.75">0.75x</option>
+                            <option value="1">1x (Normální)</option>
+                            <option value="1.25">1.25x</option>
+                            <option value="1.5">1.5x</option>
+                          </select>
+                        </div>
+                    </div>
                  ) : (
                    <video src={videoUrl} controls autoPlay className="w-full h-full object-contain rounded-xl shadow-md bg-black" />
                  )}

@@ -47,6 +47,12 @@ export async function onRequest(context) {
   headers.set('etag', object.httpEtag);
   headers.set('accept-ranges', 'bytes');
 
+  // Ensure PDFs are rendered inline and not downloaded
+  if (key.toLowerCase().endsWith('.pdf')) {
+    headers.set('content-type', 'application/pdf');
+    headers.set('content-disposition', 'inline');
+  }
+
   // Handle HEAD request
   if (isHead) {
     headers.set('content-length', object.size.toString());

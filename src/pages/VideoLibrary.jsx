@@ -1,9 +1,25 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Play, FileText, Headphones, Book } from "lucide-react";
 import { formatMediaName } from "../mediaConfig";
 
 export default function VideoLibrary({ title, mediaSrcMap }) {
   const [selectedMedia, setSelectedMedia] = useState(null);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const audioRef = useRef(null);
+
+  const handleSpeedChange = (e) => {
+    const speed = parseFloat(e.target.value);
+    setPlaybackSpeed(speed);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = speed;
+    }
+  };
+
+  const handleAudioLoad = () => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = playbackSpeed;
+    }
+  };
 
   // mediaSrcMap is an object from import.meta.glob
   const rawFiles = Object.entries(mediaSrcMap).map(([path, url]) => {
@@ -12,10 +28,17 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
     const name = formatMediaName(path);
     const extension = filename.split('.').pop().toLowerCase();
     
-    // Extrahovat název složky, ve které se soubor nachází
-    // Cesty vypadají jako: ./books/Suzuki Teaching Points/file.pdf
-    // parts bude ['.', 'books', 'Suzuki Teaching Points']
-    const folderPath = parts.length > 2 ? parts.slice(2).join(' / ') : "Ostatní";
+    // Detect "Book X" or "Book X Accomp" anywhere in the path
+    // e.g. ./mp3/Suzuki mp3 Official/Book 1/01 - ...mp3
+    //      ./mp3/Suzuki mp3 Official/Book 1 Accomp/22 - ...mp3
+    let folderPath = "Ostatní";
+    const bookMatch = path.match(/\/(Book\s+\d+(?:\s+Accomp)?)\//i);
+    if (bookMatch) {
+      folderPath = bookMatch[1]; // e.g. "Book 1" or "Book 1 Accomp"
+    } else if (parts.length > 2) {
+      // fallback: use the deepest subfolder name
+      folderPath = parts.slice(2).join(' / ');
+    }
     
     let type = 'video';
     if (extension === 'pdf') {
@@ -27,14 +50,34 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
     return { name, url, type, folder: folderPath };
   });
 
+  // Dedup by folder+name so same-title tracks in different books are not collapsed
   const uniqueFilesMap = new Map();
   for (const file of rawFiles) {
-    if (!uniqueFilesMap.has(file.name)) {
-      uniqueFilesMap.set(file.name, file);
+    const key = `${file.folder}||${file.name}`;
+    if (!uniqueFilesMap.has(key)) {
+      uniqueFilesMap.set(key, file);
     }
   }
 
-  const files = Array.from(uniqueFilesMap.values()).sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true, sensitivity: 'base'}));
+  // Helper: sort folders naturally — Book 1 < Book 2 < Book 1 Accomp < Book 2 Accomp
+  const sortFolders = ([a], [b]) => {
+    const bookNum = (s) => { const m = s.match(/Book\s+(\d+)/i); return m ? parseInt(m[1], 10) : 999; };
+    const isAccomp = (s) => /Accomp/i.test(s);
+    const na = bookNum(a), nb = bookNum(b);
+    if (na !== nb) return na - nb;
+    if (isAccomp(a) !== isAccomp(b)) return isAccomp(a) ? 1 : -1;
+    return a.localeCompare(b, undefined, { numeric: true });
+  };
+
+  // Helper: sort files by leading track number, then alphabetically
+  const sortFiles = (arr) => [...arr].sort((a, b) => {
+    const num = (n) => { const m = n.match(/^(\d+)/); return m ? parseInt(m[1], 10) : 9999; };
+    const na = num(a.name), nb = num(b.name);
+    if (na !== nb) return na - nb;
+    return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+  });
+
+  const files = Array.from(uniqueFilesMap.values());
 
   const renderGrid = (items) => (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
@@ -111,7 +154,22 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
                      <div className="p-8 bg-surface-hover rounded-full shadow-inner animate-pulse">
                        <Headphones size={64} className="text-amber-500" />
                      </div>
-                     <audio src={selectedMedia.url} controls autoPlay className="w-full max-w-md shadow-md rounded-full" />
+                     <audio ref={audioRef} onLoadedData={handleAudioLoad} src={selectedMedia.url} controls autoPlay className="w-full max-w-md shadow-md rounded-full" />
+                     <div className="flex items-center gap-4 bg-surface-container-low p-4 rounded-xl border border-outline-variant/30 shadow-sm">
+                        <label htmlFor="speed" className="font-bold text-on-surface-variant">Rychlost:</label>
+                        <select 
+                          id="speed"
+                          value={playbackSpeed}
+                          onChange={handleSpeedChange}
+                          className="bg-surface-variant text-on-surface p-2 rounded-lg border-none focus:ring-2 focus:ring-primary outline-none cursor-pointer font-medium"
+                        >
+                          <option value="0.5">0.5x</option>
+                          <option value="0.75">0.75x</option>
+                          <option value="1">1x (Normální)</option>
+                          <option value="1.25">1.25x</option>
+                          <option value="1.5">1.5x</option>
+                        </select>
+                      </div>
                   </div>
                ) : (
                   <video src={selectedMedia.url} controls autoPlay className="w-full h-full object-contain" />
@@ -128,12 +186,12 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
                 <Book className="text-tertiary" />
                 Knihy a Materiály
               </h2>
-              {Object.entries(groupedBooks).sort(([a], [b]) => a.localeCompare(b)).map(([folder, fItems]) => (
+              {Object.entries(groupedBooks).sort(sortFolders).map(([folder, fItems]) => (
                 <div key={folder} className="mb-8">
                   <h3 className={`font-headline text-xl text-primary font-bold flex items-center gap-2 mb-6 ${folder !== "Ostatní" ? "mt-4" : "mt-0"}`}>
                     <span className="text-2xl">📁</span> {folder}
                   </h3>
-                  {renderGrid(fItems)}
+                  {renderGrid(sortFiles(fItems))}
                 </div>
               ))}
             </div>
@@ -145,12 +203,12 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
                 <Play className="text-tertiary" />
                 Videa a Nahrávky
               </h2>
-              {Object.entries(groupedMedia).sort(([a], [b]) => a.localeCompare(b)).map(([folder, fItems]) => (
+              {Object.entries(groupedMedia).sort(sortFolders).map(([folder, fItems]) => (
                 <div key={folder} className="mb-8">
                   <h3 className={`font-headline text-xl text-primary font-bold flex items-center gap-2 mb-6 ${folder !== "Ostatní" ? "mt-4" : "mt-0"}`}>
                     <span className="text-2xl">📁</span> {folder}
                   </h3>
-                  {renderGrid(fItems)}
+                  {renderGrid(sortFiles(fItems))}
                 </div>
               ))}
             </div>
