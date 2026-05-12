@@ -27,3 +27,4 @@ dist-ssr
 src/books/
 src/mp3/
 src/video/
+.wrangler/
