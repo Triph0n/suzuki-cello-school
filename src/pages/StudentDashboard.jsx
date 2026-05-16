@@ -129,8 +129,8 @@ export default function StudentDashboard() {
                <div className="flex-1 overflow-hidden bg-black/10 flex items-center justify-center p-2 sm:p-6 relative">
                  {!videoUrl ? (
                    <div className="text-on-surface-variant text-lg bg-surface-container-low p-8 rounded-2xl shadow-sm text-center">
-                     <p className="font-bold text-xl mb-2 text-primary">Média nenalezena</p>
-                     <p>Starý typ odkazu nebo soubor chybí. Zkuste úkol učitelem znovu přiřadit.</p>
+                     <p className="font-bold text-xl mb-2 text-primary">Media not found</p>
+                     <p>Old link type or file is missing. Please ask the teacher to reassign the task.</p>
                    </div>
                  ) : type === 'book' ? (
                    <iframe src={videoUrl} className="w-full h-full border-none rounded-xl bg-white shadow-md" title={playingVideo.title} />
@@ -141,7 +141,7 @@ export default function StudentDashboard() {
                        </div>
                        <audio ref={audioRef} onLoadedData={handleAudioLoad} src={videoUrl} controls autoPlay className="w-full max-w-md shadow-md rounded-full" />
                        <div className="flex items-center gap-4 bg-surface-container-low p-4 rounded-xl border border-outline-variant/30 shadow-sm mt-4">
-                          <label htmlFor="speed" className="font-bold text-on-surface-variant">Rychlost:</label>
+                          <label htmlFor="speed" className="font-bold text-on-surface-variant">Speed:</label>
                           <select 
                             id="speed"
                             value={playbackSpeed}
@@ -150,7 +150,7 @@ export default function StudentDashboard() {
                           >
                             <option value="0.5">0.5x</option>
                             <option value="0.75">0.75x</option>
-                            <option value="1">1x (Normální)</option>
+                            <option value="1">1x (Normal)</option>
                             <option value="1.25">1.25x</option>
                             <option value="1.5">1.5x</option>
                           </select>

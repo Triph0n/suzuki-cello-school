@@ -101,16 +101,16 @@ export default function TeacherDashboard() {
               type="password" 
               value={passwordInput}
               onChange={(e) => { setPasswordInput(e.target.value); setAuthError(false); }}
-              placeholder="Zadejte heslo..." 
+              placeholder="Enter password..." 
               className="px-4 py-3 rounded-xl border border-outline-variant bg-surface-container text-on-background focus:outline-none focus:border-primary transition-colors text-center"
               autoFocus
             />
-            {authError && <p className="text-red-500 text-sm font-medium">Nesprávné heslo</p>}
+            {authError && <p className="text-red-500 text-sm font-medium">Incorrect password</p>}
             <button 
               type="submit" 
               className="px-6 py-3 bg-primary hover:bg-primary-dim text-on-primary rounded-xl font-bold transition-all shadow-sm"
             >
-              Vstoupit
+              Enter
             </button>
           </form>
         </div>
@@ -137,7 +137,7 @@ export default function TeacherDashboard() {
   };
 
   const handleRemoveVideo = async (studentId, videoIndex) => {
-    if (!window.confirm("Opravdu chcete odebrat tuto skladbu?")) return;
+    if (!window.confirm("Do you really want to remove this piece?")) return;
     
     const targetStudent = students.find(s => s.id === studentId);
     if (!targetStudent) return;
@@ -155,7 +155,7 @@ export default function TeacherDashboard() {
 
   const handleRemoveStudent = async (studentId, e) => {
     e.stopPropagation();
-    if (!window.confirm("Opravdu chcete trvale smazat tohoto žáka?")) return;
+    if (!window.confirm("Do you really want to permanently delete this student?")) return;
     await deleteStudent(studentId);
     if (selectedStudentId === studentId) setSelectedStudentId(null);
   };
@@ -169,7 +169,7 @@ export default function TeacherDashboard() {
   };
 
   const handleRemoveMaterial = async (materialId) => {
-    if (!window.confirm("Opravdu chcete tento materiál smazat?")) return;
+    if (!window.confirm("Do you really want to delete this material?")) return;
     await deleteMaterial(materialId);
   };
 
@@ -202,7 +202,7 @@ export default function TeacherDashboard() {
   };
 
   const handleRemoveAttendance = async (attendanceId) => {
-    if (!window.confirm("Opravdu chcete tento záznam z hodiny smazat?")) return;
+    if (!window.confirm("Do you really want to delete this lesson record?")) return;
     await deleteAttendance(attendanceId);
   };
 
@@ -221,7 +221,7 @@ export default function TeacherDashboard() {
             <button 
               onClick={() => setSelectedStudentId(null)}
               className="p-3 bg-surface-variant hover:bg-outline-variant/30 text-on-surface-variant rounded-full transition-colors shadow-sm"
-              title="Zpět na seznam"
+              title="Back to list"
             >
               <ChevronLeft size={24} />
             </button>
@@ -247,7 +247,7 @@ export default function TeacherDashboard() {
             className="flex items-center gap-2 px-6 py-3 bg-tertiary hover:bg-tertiary/90 text-on-primary border-none rounded-xl font-bold cursor-pointer transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-1"
           >
             <Calendar size={20} />
-            <span>Zapsat hodinu</span>
+            <span>Log Lesson</span>
           </button>
         )}
       </div>
@@ -257,7 +257,7 @@ export default function TeacherDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {/* LEVÝ SLOUPEC: Záznamy z hodin (Docházka) */}
           <div>
-            <h2 className="font-headline text-2xl font-bold text-on-background mb-6">Proběhlé lekce</h2>
+            <h2 className="font-headline text-2xl font-bold text-on-background mb-6">Past Lessons</h2>
             <div className="flex flex-col gap-4">
               {studentAttendances.length > 0 ? (
                 studentAttendances.map((record) => {
@@ -275,21 +275,21 @@ export default function TeacherDashboard() {
                           <button 
                             onClick={() => openAttendanceModal(record)}
                             className="p-2 text-on-surface-variant hover:text-primary transition-colors"
-                            title="Upravit"
+                            title="Edit"
                           >
                             <Edit2 size={16} />
                           </button>
                           <button 
                             onClick={() => handleRemoveAttendance(record.id)}
                             className="p-2 text-on-surface-variant hover:text-red-500 transition-colors"
-                            title="Smazat"
+                            title="Delete"
                           >
                             <Trash2 size={16} />
                           </button>
                         </div>
                       </div>
                       <p className="text-on-surface-variant leading-relaxed">
-                        {record.note || <span className="italic opacity-50">Bez poznámky</span>}
+                        {record.note || <span className="italic opacity-50">No note</span>}
                       </p>
                     </div>
                   );
@@ -297,8 +297,8 @@ export default function TeacherDashboard() {
               ) : (
                 <div className="text-center p-10 bg-surface-container-low rounded-3xl border border-outline-variant/30 text-on-surface-variant shadow-sm">
                   <Calendar size={48} className="mx-auto mb-4 opacity-30" />
-                  <p className="text-lg font-medium mb-1">Žádné záznamy z hodin</p>
-                  <p className="text-sm">Klikněte na tlačítko Zapsat hodinu nahoře pro přidání.</p>
+                  <p className="text-lg font-medium mb-1">No lesson records</p>
+                  <p className="text-sm">Click the Log Lesson button above to add one.</p>
                 </div>
               )}
             </div>
@@ -307,12 +307,12 @@ export default function TeacherDashboard() {
           {/* PRAVÝ SLOUPEC: Materiály a úkoly */}
           <div>
              <div className="flex justify-between items-center mb-6">
-                <h2 className="font-headline text-2xl font-bold text-on-background">Přiřazené materiály</h2>
+                <h2 className="font-headline text-2xl font-bold text-on-background">Assigned Materials</h2>
                 <button 
                   onClick={() => initiateAddVideo(selectedStudentId)}
                   className="flex items-center gap-2 px-4 py-2 bg-secondary-container hover:bg-secondary-fixed-dim text-on-secondary-container rounded-lg transition-colors shadow-sm font-bold text-sm"
                 >
-                  <Plus size={16} /> Přidat
+                  <Plus size={16} /> Add
                 </button>
              </div>
              
@@ -330,14 +330,14 @@ export default function TeacherDashboard() {
                         <button 
                           onClick={() => handleRemoveVideo(selectedStudentId, idx)}
                           className="p-2 text-on-surface-variant hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Odebrat úkol"
+                          title="Remove task"
                         >
                           <Trash2 size={16} />
                         </button>
                       </div>
                     ))
                   ) : (
-                    <span className="text-on-surface-variant text-sm font-medium italic text-center block py-4">Zatím nejsou přiřazeny žádné materiály.</span>
+                    <span className="text-on-surface-variant text-sm font-medium italic text-center block py-4">No materials assigned yet.</span>
                   )}
                 </div>
              </div>
@@ -377,7 +377,7 @@ export default function TeacherDashboard() {
                 </div>
               ))}
               {students.length === 0 && (
-                <div className="text-on-surface-variant text-center p-8 bg-surface-container-low rounded-3xl border border-outline-variant/30">Zatím zde nejsou žádní žáci...</div>
+                <div className="text-on-surface-variant text-center p-8 bg-surface-container-low rounded-3xl border border-outline-variant/30">No students here yet...</div>
               )}
             </div>
           </div>
@@ -417,7 +417,7 @@ export default function TeacherDashboard() {
                 ))
               ) : (
                 <div className="text-center p-4">
-                   <span className="text-on-surface-variant text-sm font-medium">Zatím žádné materiály. Klikněte na + pro přidání.</span>
+                   <span className="text-on-surface-variant text-sm font-medium">No materials yet. Click + to add.</span>
                 </div>
               )}
             </div>
@@ -433,7 +433,7 @@ export default function TeacherDashboard() {
             <div className="flex justify-between items-center p-6 border-b border-outline-variant/20 bg-surface-container">
               <h2 className="font-headline text-2xl font-bold text-on-background flex items-center gap-2">
                 <Calendar size={24} className="text-tertiary" />
-                {editingAttendanceId ? "Úprava hodiny" : "Zapsat hodinu"}
+                {editingAttendanceId ? "Edit Lesson" : "Log Lesson"}
               </h2>
               <button onClick={() => setAttendanceModalOpen(false)} className="p-2 hover:bg-surface-variant text-on-surface-variant rounded-full transition-colors">
                 <X size={20} />
@@ -441,7 +441,7 @@ export default function TeacherDashboard() {
             </div>
             <form onSubmit={handleSaveAttendance} className="p-6 flex flex-col gap-6">
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Datum</label>
+                <label className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Date</label>
                 <input 
                   type="date" 
                   required
@@ -451,13 +451,13 @@ export default function TeacherDashboard() {
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Poznámka (co hrál)</label>
+                <label className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Note (what was played)</label>
                 <textarea 
                   required
                   rows="4"
                   value={attendanceNote}
                   onChange={e => setAttendanceNote(e.target.value)}
-                  placeholder="Např. C dur stupnice, opakování Menuetu..."
+                  placeholder="E.g. C major scale, repeating Minuet..."
                   className="px-4 py-3 rounded-xl border border-outline-variant bg-surface-container text-on-background focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors resize-none w-full"
                 ></textarea>
               </div>
@@ -467,13 +467,13 @@ export default function TeacherDashboard() {
                   onClick={() => setAttendanceModalOpen(false)}
                   className="flex-1 py-3 px-4 bg-surface-variant hover:bg-outline-variant/30 text-on-surface-variant font-bold rounded-xl transition-colors"
                 >
-                  Zrušit
+                  Cancel
                 </button>
                 <button 
                   type="submit" 
                   className="flex-1 py-3 px-4 bg-primary hover:bg-primary-dim text-on-primary font-bold rounded-xl transition-colors shadow-sm"
                 >
-                  Uložit
+                  Save
                 </button>
               </div>
             </form>
@@ -489,7 +489,7 @@ export default function TeacherDashboard() {
             
             {/* Modal Header */}
             <div className="flex justify-between items-center p-6 border-b border-outline-variant/20 bg-surface-container shrink-0">
-              <h2 className="font-headline text-xl sm:text-2xl font-bold text-on-background">Přiřadit cvičení / materiál</h2>
+              <h2 className="font-headline text-xl sm:text-2xl font-bold text-on-background">Assign exercise / material</h2>
               <button onClick={() => setAssignModalStudentId(null)} className="p-2 hover:bg-surface-variant text-on-surface-variant rounded-full transition-colors shadow-sm">
                 <X size={24} />
               </button>
@@ -546,7 +546,7 @@ export default function TeacherDashboard() {
             <div className="flex justify-between items-center p-6 border-b border-outline-variant/20 bg-surface-container">
               <h2 className="font-headline text-2xl font-bold text-on-background flex items-center gap-2">
                 <UserPlus size={24} className="text-tertiary" />
-                Přidat žáka
+                Add Student
               </h2>
               <button onClick={() => setAddStudentModalOpen(false)} className="p-2 hover:bg-surface-variant text-on-surface-variant rounded-full transition-colors">
                 <X size={20} />
@@ -554,14 +554,14 @@ export default function TeacherDashboard() {
             </div>
             <form onSubmit={handleSaveNewStudent} className="p-6 flex flex-col gap-6">
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Jméno žáka</label>
+                <label className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Student Name</label>
                 <input 
                   type="text" 
                   required
                   autoFocus
                   value={newStudentName}
                   onChange={e => setNewStudentName(e.target.value)}
-                  placeholder="Zadejte jméno nového žáka..."
+                  placeholder="Enter new student's name..."
                   className="px-4 py-3 rounded-xl border border-outline-variant bg-surface-container text-on-background focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors w-full"
                 />
               </div>
@@ -571,13 +571,13 @@ export default function TeacherDashboard() {
                   onClick={() => setAddStudentModalOpen(false)}
                   className="flex-1 py-3 px-4 bg-surface-variant hover:bg-outline-variant/30 text-on-surface-variant font-bold rounded-xl transition-colors"
                 >
-                  Zrušit
+                  Cancel
                 </button>
                 <button 
                   type="submit" 
                   className="flex-1 py-3 px-4 bg-primary hover:bg-primary-dim text-on-primary font-bold rounded-xl transition-colors shadow-sm"
                 >
-                  Přidat
+                  Add
                 </button>
               </div>
             </form>
@@ -593,7 +593,7 @@ export default function TeacherDashboard() {
             <div className="flex justify-between items-center p-6 border-b border-outline-variant/20 bg-surface-container">
               <h2 className="font-headline text-2xl font-bold text-on-background flex items-center gap-2">
                 <Book size={24} className="text-tertiary" />
-                Přidat materiál
+                Add Material
               </h2>
               <button onClick={() => setAddMaterialModalOpen(false)} className="p-2 hover:bg-surface-variant text-on-surface-variant rounded-full transition-colors">
                 <X size={20} />
@@ -601,24 +601,24 @@ export default function TeacherDashboard() {
             </div>
             <form onSubmit={handleSaveNewMaterial} className="p-6 flex flex-col gap-6">
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Název materiálu</label>
+                <label className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Material Name</label>
                 <input 
                   type="text" 
                   required
                   autoFocus
                   value={newMaterialTitle}
                   onChange={e => setNewMaterialTitle(e.target.value)}
-                  placeholder="Např. Stupnice C dur..."
+                  placeholder="E.g. C major scale..."
                   className="px-4 py-3 rounded-xl border border-outline-variant bg-surface-container text-on-background focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors w-full"
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Kategorie</label>
+                <label className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Category</label>
                 <input 
                   type="text" 
                   value={newMaterialCategory}
                   onChange={e => setNewMaterialCategory(e.target.value)}
-                  placeholder="Např. PDF, Link, Video..."
+                  placeholder="E.g. PDF, Link, Video..."
                   className="px-4 py-3 rounded-xl border border-outline-variant bg-surface-container text-on-background focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors w-full"
                 />
               </div>
@@ -628,7 +628,7 @@ export default function TeacherDashboard() {
                   onClick={() => setAddMaterialModalOpen(false)}
                   className="flex-1 py-3 px-4 bg-surface-variant hover:bg-outline-variant/30 text-on-surface-variant font-bold rounded-xl transition-colors"
                 >
-                  Zrušit
+                  Cancel
                 </button>
                 <button 
                   type="submit" 
