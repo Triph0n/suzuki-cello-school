@@ -460,6 +460,57 @@ export default function TeacherDashboard() {
                   placeholder="E.g. C major scale, repeating Minuet..."
                   className="px-4 py-3 rounded-xl border border-outline-variant bg-surface-container text-on-background focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors resize-none w-full"
                 ></textarea>
+                
+                {/* Quick Entry Buttons */}
+                <div className="mt-1 flex flex-col gap-3">
+                  <div>
+                    <span className="text-xs font-bold text-on-surface-variant uppercase mb-1.5 block">Základy:</span>
+                    <div className="flex flex-wrap gap-2">
+                      {["C Scale", "D Scale", "G Scale", "A Scale", "Ševčík", "Time Joggers", "Rick Mooney"].map(item => (
+                        <button 
+                          key={item} 
+                          type="button" 
+                          onClick={() => setAttendanceNote(prev => prev ? prev + ", " + item : item)} 
+                          className="px-3 py-1.5 bg-surface-variant text-on-surface-variant text-sm font-medium rounded-lg hover:bg-primary hover:text-on-primary transition-colors"
+                        >
+                          {item}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <span className="text-xs font-bold text-on-surface-variant uppercase mb-1.5 block">Suzuki Book 1:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {["Twinkle Var.", "French Folk Song", "Lightly Row", "Song of the Wind", "Go Tell Aunt Rhody", "O Come, Little Children", "May Song", "Allegro", "Perpetual Motion", "Long, Long Ago", "Allegretto", "Andantino", "Rigadoon", "Etude", "The Happy Farmer", "Minuet in C", "Minuet No. 2"].map(piece => (
+                        <button 
+                          key={piece} 
+                          type="button" 
+                          onClick={() => setAttendanceNote(prev => prev ? prev + ", " + piece : piece)} 
+                          className="px-2.5 py-1 bg-surface-container border border-outline-variant/30 text-on-surface-variant text-xs font-medium rounded-md hover:bg-secondary-container hover:text-on-secondary-container transition-colors shadow-sm"
+                        >
+                          {piece}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="text-xs font-bold text-on-surface-variant uppercase mb-1.5 block">Suzuki Book 2:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {["Long, Long Ago (Bk2)", "May Time", "Minuet No. 1", "Minuet No. 3", "Judas Maccabaeus", "Hunters' Chorus", "Musette", "March in G", "Witches' Dance", "Two Grenadiers", "Gavotte (Gossec)", "Bourrée (Handel)"].map(piece => (
+                        <button 
+                          key={piece} 
+                          type="button" 
+                          onClick={() => setAttendanceNote(prev => prev ? prev + ", " + piece : piece)} 
+                          className="px-2.5 py-1 bg-surface-container border border-outline-variant/30 text-on-surface-variant text-xs font-medium rounded-md hover:bg-secondary-container hover:text-on-secondary-container transition-colors shadow-sm"
+                        >
+                          {piece}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className="pt-2 flex gap-3">
                 <button 

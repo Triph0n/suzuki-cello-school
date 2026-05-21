@@ -6,6 +6,7 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
   const [selectedMedia, setSelectedMedia] = useState(null);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const audioRef = useRef(null);
+  const iframeRef = useRef(null);
 
   const handleSpeedChange = (e) => {
     const speed = parseFloat(e.target.value);
@@ -138,17 +139,32 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
             
             <div className="flex justify-between items-center px-2 pb-4 mb-2 border-b border-outline-variant/20 shrink-0 gap-4">
                <h2 className="font-headline text-lg sm:text-xl font-bold text-on-background break-words" title={selectedMedia.name}>{selectedMedia.name}</h2>
-               <button 
-                 onClick={() => setSelectedMedia(null)}
-                 className="flex items-center gap-2 bg-surface-variant hover:bg-surface-container-highest border-none px-4 py-2 rounded-xl text-on-surface-variant hover:text-primary font-bold cursor-pointer transition-colors shadow-sm"
-               >
-                 Zavřít ✕
-               </button>
+               <div className="flex gap-2">
+                 {selectedMedia.type === 'book' && (
+                   <button
+                     onClick={() => {
+                       if (iframeRef.current && iframeRef.current.requestFullscreen) {
+                         iframeRef.current.requestFullscreen();
+                       }
+                     }}
+                     className="hidden md:flex items-center gap-2 bg-surface-variant hover:bg-surface-container-highest border-none px-4 py-2 rounded-xl text-on-surface-variant hover:text-primary font-bold cursor-pointer transition-colors shadow-sm"
+                     title="Celá obrazovka"
+                   >
+                     Celá obrazovka
+                   </button>
+                 )}
+                 <button 
+                   onClick={() => setSelectedMedia(null)}
+                   className="flex items-center gap-2 bg-surface-variant hover:bg-surface-container-highest border-none px-4 py-2 rounded-xl text-on-surface-variant hover:text-primary font-bold cursor-pointer transition-colors shadow-sm"
+                 >
+                   Zavřít ✕
+                 </button>
+               </div>
             </div>
             
             <div className="flex-1 min-h-0 flex flex-col items-center justify-center bg-black rounded-xl overflow-hidden">
                {selectedMedia.type === 'book' ? (
-                   <iframe src={selectedMedia.url} className="w-full h-full border-none bg-white" title={selectedMedia.name} />
+                   <iframe ref={iframeRef} src={selectedMedia.url} className="w-full h-full border-none bg-white" title={selectedMedia.name} />
                ) : selectedMedia.type === 'audio' ? (
                   <div className="w-full h-full flex flex-col items-center justify-center gap-8 bg-surface-container">
                      <div className="p-8 bg-surface-hover rounded-full shadow-inner animate-pulse">

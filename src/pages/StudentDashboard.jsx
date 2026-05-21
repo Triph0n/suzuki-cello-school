@@ -11,6 +11,7 @@ export default function StudentDashboard() {
   const [playingVideo, setPlayingVideo] = useState(null);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const audioRef = useRef(null);
+  const iframeRef = useRef(null);
 
   const handleSpeedChange = (e) => {
     const speed = parseFloat(e.target.value);
@@ -121,9 +122,24 @@ export default function StudentDashboard() {
              <div className="bg-surface-container-low border border-outline-variant/30 rounded-[2rem] shadow-2xl w-full max-w-7xl h-full max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
                <div className="flex justify-between items-center p-4 sm:p-6 border-b border-outline-variant/20 bg-surface-container shrink-0">
                  <h2 className="font-headline text-xl sm:text-2xl font-bold text-on-background break-words">{playingVideo.title}</h2>
-                 <button onClick={() => setPlayingVideo(null)} className="p-2 hover:bg-surface-variant text-on-surface-variant rounded-xl transition-colors shrink-0 outline-none">
-                   <X size={28} />
-                 </button>
+                 <div className="flex items-center gap-2">
+                   {type === 'book' && (
+                     <button
+                       onClick={() => {
+                         if (iframeRef.current && iframeRef.current.requestFullscreen) {
+                           iframeRef.current.requestFullscreen();
+                         }
+                       }}
+                       className="hidden md:flex items-center gap-2 bg-surface-variant hover:bg-surface-container-highest border-none px-4 py-2 rounded-xl text-on-surface-variant hover:text-primary font-bold cursor-pointer transition-colors shadow-sm"
+                       title="Celá obrazovka"
+                     >
+                       Celá obrazovka
+                     </button>
+                   )}
+                   <button onClick={() => setPlayingVideo(null)} className="p-2 hover:bg-surface-variant text-on-surface-variant rounded-xl transition-colors shrink-0 outline-none" title="Zavřít">
+                     <X size={28} />
+                   </button>
+                 </div>
                </div>
                
                <div className="flex-1 overflow-hidden bg-black/10 flex items-center justify-center p-2 sm:p-6 relative">
@@ -133,7 +149,7 @@ export default function StudentDashboard() {
                      <p>Old link type or file is missing. Please ask the teacher to reassign the task.</p>
                    </div>
                  ) : type === 'book' ? (
-                   <iframe src={videoUrl} className="w-full h-full border-none rounded-xl bg-white shadow-md" title={playingVideo.title} />
+                   <iframe ref={iframeRef} src={videoUrl} className="w-full h-full border-none rounded-xl bg-white shadow-md" title={playingVideo.title} />
                  ) : type === 'audio' ? (
                    <div className="w-full h-full flex flex-col items-center justify-center gap-8 bg-surface-container rounded-2xl">
                        <div className="p-8 bg-surface-variant rounded-full shadow-inner animate-pulse">
