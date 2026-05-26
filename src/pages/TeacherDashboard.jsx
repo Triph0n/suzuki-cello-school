@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { subscribeToStudents, subscribeToMaterials, addStudent, deleteStudent, updateStudentVideos, addMaterial, deleteMaterial, subscribeToAttendances, addAttendance, deleteAttendance, editAttendance } from "../api";
-import { Play, X, Headphones, FileText, UserPlus, Plus, Book, Trash2, Calendar, ChevronLeft, Edit2 } from "lucide-react";
+import { Play, X, Headphones, FileText, UserPlus, Plus, Book, Trash2, Calendar, ChevronLeft, Edit2, ChevronDown, ChevronRight } from "lucide-react";
 import { combinedPreTwinkleFiles, allCheckpointsFiles, allJoggersFiles, allBooksFiles, allSuzukiMp3OfficialFiles, formatMediaName } from "../mediaConfig";
 
 const getAvailableFiles = (globMap, categoryLabel) => {
@@ -43,6 +43,20 @@ export default function TeacherDashboard() {
   const [attendances, setAttendances] = useState([]);
   
   const [selectedStudentId, setSelectedStudentId] = useState(null);
+  
+  // Track which attendance records are expanded
+  const [expandedRecords, setExpandedRecords] = useState({});
+
+  const toggleRecord = (id) => {
+    setExpandedRecords(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  useEffect(() => {
+    setExpandedRecords({});
+  }, [selectedStudentId]);
   
   // Attendance modal states
   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
@@ -264,33 +278,46 @@ export default function TeacherDashboard() {
                   const displayDate = new Date(record.date).toLocaleDateString('cs-CZ', {
                     day: 'numeric', month: 'long', year: 'numeric'
                   });
+                  const isExpanded = !!expandedRecords[record.id];
                   return (
-                    <div key={record.id} className="bg-surface-container-low border border-outline-variant/30 hover:border-primary/30 rounded-3xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-all">
-                      <div className="flex justify-between items-center border-b border-outline-variant/20 pb-3">
-                        <span className="font-headline font-bold text-lg text-primary flex items-center gap-2">
-                          <Calendar size={18} className="text-tertiary" />
-                          {displayDate}
-                        </span>
-                        <div className="flex gap-2">
+                    <div key={record.id} className="bg-surface-container-low border border-outline-variant/30 hover:border-primary/30 rounded-2xl p-4 flex flex-col shadow-sm hover:shadow-md transition-all">
+                      <div 
+                        className="flex justify-between items-center cursor-pointer select-none" 
+                        onClick={() => toggleRecord(record.id)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-on-surface-variant transition-transform duration-200">
+                            {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                          </span>
+                          <span className="font-headline font-bold text-base text-primary flex items-center gap-2">
+                            <Calendar size={18} className="text-tertiary" />
+                            {displayDate}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
                           <button 
                             onClick={() => openAttendanceModal(record)}
-                            className="p-2 text-on-surface-variant hover:text-primary transition-colors"
+                            className="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-variant rounded-lg transition-colors"
                             title="Edit"
                           >
                             <Edit2 size={16} />
                           </button>
                           <button 
                             onClick={() => handleRemoveAttendance(record.id)}
-                            className="p-2 text-on-surface-variant hover:text-red-500 transition-colors"
+                            className="p-2 text-on-surface-variant hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                             title="Delete"
                           >
                             <Trash2 size={16} />
                           </button>
                         </div>
                       </div>
-                      <p className="text-on-surface-variant leading-relaxed">
-                        {record.note || <span className="italic opacity-50">No note</span>}
-                      </p>
+                      {isExpanded && (
+                        <div className="border-t border-outline-variant/20 pt-3 mt-2">
+                          <p className="text-on-surface-variant leading-relaxed text-sm whitespace-pre-line">
+                            {record.note || <span className="italic opacity-50">No note</span>}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   );
                 })
@@ -354,22 +381,22 @@ export default function TeacherDashboard() {
                 <div 
                   key={student.id} 
                   onClick={() => setSelectedStudentId(student.id)}
-                  className="bg-surface-container-low border border-outline-variant/30 rounded-3xl p-5 shadow-sm hover:shadow-md hover:border-primary/40 transition-all cursor-pointer group flex justify-between items-center"
+                  className="group flex justify-between items-center p-4 sm:p-5 bg-surface-container-lowest hover:bg-surface-container-low rounded-2xl cursor-pointer transition-colors"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-secondary-container text-on-secondary-container rounded-full flex items-center justify-center font-bold text-xl uppercase shadow-inner">
+                    <div className="w-12 h-12 bg-surface-variant text-on-surface-variant rounded-full flex items-center justify-center font-medium text-lg uppercase">
                       {student.name.charAt(0)}
                     </div>
                     <div>
-                      <h3 className="font-headline text-xl font-bold text-primary group-hover:text-primary-dim transition-colors">{student.name}</h3>
-                      <span className="text-sm text-on-surface-variant font-medium">
-                        {student.assignedVideos?.length || 0} materials assigned
+                      <h3 className="font-headline text-lg font-medium text-on-background group-hover:text-primary transition-colors">{student.name}</h3>
+                      <span className="text-sm text-on-surface-variant">
+                        {student.assignedVideos?.length || 0} materials
                       </span>
                     </div>
                   </div>
                   <button 
                     onClick={(e) => handleRemoveStudent(student.id, e)}
-                    className="p-2 text-on-surface-variant hover:bg-red-100 hover:text-red-600 rounded-lg transition-colors shadow-sm opacity-0 group-hover:opacity-100"
+                    className="p-2 text-on-surface-variant hover:text-red-600 rounded-full transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
                     title="Remove student"
                   >
                     <Trash2 size={18} />
@@ -429,105 +456,107 @@ export default function TeacherDashboard() {
       {attendanceModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setAttendanceModalOpen(false)} />
-          <div className="bg-surface-container-low border border-outline-variant/30 rounded-[2rem] w-full max-w-md shadow-2xl z-10 overflow-hidden transform transition-all flex flex-col">
-            <div className="flex justify-between items-center p-6 border-b border-outline-variant/20 bg-surface-container">
-              <h2 className="font-headline text-2xl font-bold text-on-background flex items-center gap-2">
-                <Calendar size={24} className="text-tertiary" />
-                {editingAttendanceId ? "Edit Lesson" : "Log Lesson"}
-              </h2>
-              <button onClick={() => setAttendanceModalOpen(false)} className="p-2 hover:bg-surface-variant text-on-surface-variant rounded-full transition-colors">
-                <X size={20} />
-              </button>
-            </div>
-            <form onSubmit={handleSaveAttendance} className="p-6 flex flex-col gap-6">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Date</label>
-                <input 
-                  type="date" 
-                  required
-                  value={attendanceDate}
-                  onChange={e => setAttendanceDate(e.target.value)}
-                  className="px-4 py-3 rounded-xl border border-outline-variant bg-surface-container text-on-background focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors w-full"
-                />
+          <div className="bg-surface-container-low border border-outline-variant/30 rounded-[2rem] w-full max-w-md max-h-[90vh] shadow-2xl z-10 overflow-hidden transform transition-all flex flex-col">
+          <div className="bg-surface-container-low border border-outline-variant/30 rounded-[2rem] w-full max-w-md max-h-[90vh] shadow-2xl z-10 overflow-hidden transform transition-all flex flex-col">
+            <form onSubmit={handleSaveAttendance} className="flex flex-col h-full overflow-hidden">
+              <div className="flex justify-between items-center p-4 sm:p-6 border-b border-outline-variant/10 bg-surface-container shrink-0">
+                <h2 className="font-headline text-xl font-medium text-on-background flex items-center gap-2">
+                  <Calendar size={20} className="text-tertiary" />
+                  {editingAttendanceId ? "Edit Lesson" : "Log Lesson"}
+                </h2>
+                <div className="flex gap-2">
+                  <button 
+                    type="button" 
+                    onClick={() => setAttendanceModalOpen(false)}
+                    className="px-4 py-2 hover:bg-surface-variant text-on-surface-variant font-medium rounded-full transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="px-4 py-2 bg-primary hover:opacity-90 text-on-primary font-medium rounded-full transition-opacity"
+                  >
+                    Save
+                  </button>
+                </div>
               </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Note (what was played)</label>
-                <textarea 
-                  required
-                  rows="4"
-                  value={attendanceNote}
-                  onChange={e => setAttendanceNote(e.target.value)}
-                  placeholder="E.g. C major scale, repeating Minuet..."
-                  className="px-4 py-3 rounded-xl border border-outline-variant bg-surface-container text-on-background focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors resize-none w-full"
-                ></textarea>
-                
-                {/* Quick Entry Buttons */}
-                <div className="mt-1 flex flex-col gap-3">
-                  <div>
-                    <span className="text-xs font-bold text-on-surface-variant uppercase mb-1.5 block">Základy:</span>
-                    <div className="flex flex-wrap gap-2">
-                      {["C Scale", "D Scale", "G Scale", "A Scale", "Ševčík", "Time Joggers", "Rick Mooney"].map(item => (
-                        <button 
-                          key={item} 
-                          type="button" 
-                          onClick={() => setAttendanceNote(prev => prev ? prev + ", " + item : item)} 
-                          className="px-3 py-1.5 bg-surface-variant text-on-surface-variant text-sm font-medium rounded-lg hover:bg-primary hover:text-on-primary transition-colors"
-                        >
-                          {item}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+              
+              <div className="p-4 sm:p-6 flex flex-col gap-6 overflow-y-auto">
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-on-surface-variant">Date</label>
+                  <input 
+                    type="date" 
+                    required
+                    value={attendanceDate}
+                    onChange={e => setAttendanceDate(e.target.value)}
+                    className="px-4 py-2 rounded-md border border-outline-variant bg-surface-container text-on-background focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors w-full"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-on-surface-variant">Note (what was played)</label>
+                  <textarea 
+                    required
+                    rows="4"
+                    value={attendanceNote}
+                    onChange={e => setAttendanceNote(e.target.value)}
+                    placeholder="E.g. C major scale, repeating Minuet..."
+                    className="px-4 py-3 rounded-md border border-outline-variant bg-surface-container text-on-background focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors resize-none w-full"
+                  ></textarea>
                   
-                  <div>
-                    <span className="text-xs font-bold text-on-surface-variant uppercase mb-1.5 block">Suzuki Book 1:</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {["Twinkle Var.", "French Folk Song", "Lightly Row", "Song of the Wind", "Go Tell Aunt Rhody", "O Come, Little Children", "May Song", "Allegro", "Perpetual Motion", "Long, Long Ago", "Allegretto", "Andantino", "Rigadoon", "Etude", "The Happy Farmer", "Minuet in C", "Minuet No. 2"].map(piece => (
-                        <button 
-                          key={piece} 
-                          type="button" 
-                          onClick={() => setAttendanceNote(prev => prev ? prev + ", " + piece : piece)} 
-                          className="px-2.5 py-1 bg-surface-container border border-outline-variant/30 text-on-surface-variant text-xs font-medium rounded-md hover:bg-secondary-container hover:text-on-secondary-container transition-colors shadow-sm"
-                        >
-                          {piece}
-                        </button>
-                      ))}
+                  {/* Quick Entry Buttons */}
+                  <div className="mt-2 flex flex-col gap-4">
+                    <div>
+                      <span className="text-sm font-medium text-on-surface-variant mb-2 block">Základy</span>
+                      <div className="flex flex-wrap gap-2">
+                        {["C Scale", "D Scale", "G Scale", "A Scale", "Ševčík", "Time Joggers", "Rick Mooney"].map(item => (
+                          <button 
+                            key={item} 
+                            type="button" 
+                            onClick={() => setAttendanceNote(prev => prev ? prev + ", " + item : item)} 
+                            className="px-3 py-1.5 bg-surface-variant text-on-surface-variant text-sm font-medium rounded-lg hover:bg-primary hover:text-on-primary transition-colors"
+                          >
+                            {item}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                    
+                    <div>
+                      <span className="text-sm font-medium text-on-surface-variant mb-2 block">Suzuki Book 1</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {["Twinkle Var.", "French Folk Song", "Lightly Row", "Song of the Wind", "Go Tell Aunt Rhody", "O Come, Little Children", "May Song", "Allegro", "Perpetual Motion", "Long, Long Ago", "Allegretto", "Andantino", "Rigadoon", "Etude", "The Happy Farmer", "Minuet in C", "Minuet No. 2"].map(piece => (
+                          <button 
+                            key={piece} 
+                            type="button" 
+                            onClick={() => setAttendanceNote(prev => prev ? prev + ", " + piece : piece)} 
+                            className="px-2.5 py-1 bg-surface-container border border-outline-variant/30 text-on-surface-variant text-xs font-medium rounded-md hover:bg-secondary-container hover:text-on-secondary-container transition-colors shadow-sm"
+                          >
+                            {piece}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
-                  <div>
-                    <span className="text-xs font-bold text-on-surface-variant uppercase mb-1.5 block">Suzuki Book 2:</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {["Long, Long Ago (Bk2)", "May Time", "Minuet No. 1", "Minuet No. 3", "Judas Maccabaeus", "Hunters' Chorus", "Musette", "March in G", "Witches' Dance", "Two Grenadiers", "Gavotte (Gossec)", "Bourrée (Handel)"].map(piece => (
-                        <button 
-                          key={piece} 
-                          type="button" 
-                          onClick={() => setAttendanceNote(prev => prev ? prev + ", " + piece : piece)} 
-                          className="px-2.5 py-1 bg-surface-container border border-outline-variant/30 text-on-surface-variant text-xs font-medium rounded-md hover:bg-secondary-container hover:text-on-secondary-container transition-colors shadow-sm"
-                        >
-                          {piece}
-                        </button>
-                      ))}
+                    <div>
+                      <span className="text-sm font-medium text-on-surface-variant mb-2 block">Suzuki Book 2</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {["Long, Long Ago (Bk2)", "May Time", "Minuet No. 1", "Minuet No. 3", "Judas Maccabaeus", "Hunters' Chorus", "Musette", "March in G", "Witches' Dance", "Two Grenadiers", "Gavotte (Gossec)", "Bourrée (Handel)"].map(piece => (
+                          <button 
+                            key={piece} 
+                            type="button" 
+                            onClick={() => setAttendanceNote(prev => prev ? prev + ", " + piece : piece)} 
+                            className="px-2.5 py-1 bg-surface-container border border-outline-variant/30 text-on-surface-variant text-xs font-medium rounded-md hover:bg-secondary-container hover:text-on-secondary-container transition-colors shadow-sm"
+                          >
+                            {piece}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="pt-2 flex gap-3">
-                <button 
-                  type="button" 
-                  onClick={() => setAttendanceModalOpen(false)}
-                  className="flex-1 py-3 px-4 bg-surface-variant hover:bg-outline-variant/30 text-on-surface-variant font-bold rounded-xl transition-colors"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  className="flex-1 py-3 px-4 bg-primary hover:bg-primary-dim text-on-primary font-bold rounded-xl transition-colors shadow-sm"
-                >
-                  Save
-                </button>
-              </div>
             </form>
+          </div>
           </div>
         </div>
       )}

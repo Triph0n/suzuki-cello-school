@@ -86,28 +86,30 @@ export default function StudentDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {student.assignedVideos && student.assignedVideos.length > 0 ? (
           student.assignedVideos.map((video, index) => (
-            <div key={index} className="bg-surface-container-low border border-outline-variant/30 hover:border-primary/50 shadow-md hover:shadow-xl rounded-3xl p-6 flex items-start gap-4 transition-all duration-300 transform hover:-translate-y-1">
-              <div className="w-20 h-20 shrink-0 bg-secondary-container text-tertiary rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform duration-300">
-                <Play size={36} className="ml-1" />
+            <div key={index} className="group p-6 flex flex-col gap-4 hover:bg-surface-container-lowest rounded-2xl transition-colors">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 shrink-0 bg-surface-variant text-on-surface-variant rounded-full flex items-center justify-center">
+                  <Play size={24} className="ml-1" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-headline text-xl font-medium text-on-background truncate" title={video.title}>
+                    {video.title}
+                  </h3>
+                  <span className="text-on-surface-variant text-xs uppercase tracking-widest mt-1 block">
+                    {video.type}
+                  </span>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-headline text-xl font-bold text-on-background mb-2 truncate" title={video.title}>
-                  {video.title}
-                </h3>
-                <span className="inline-block bg-surface-variant text-on-surface-variant text-xs uppercase font-bold tracking-wider px-3 py-1 rounded-full mb-4">
-                  {video.type}
-                </span>
-                <button 
-                  onClick={() => setPlayingVideo(video)}
-                  className="w-full bg-primary hover:bg-primary-dim text-on-primary font-bold py-3 px-4 rounded-xl transition-colors duration-200 flex items-center justify-center shadow-md hover:shadow-lg"
-                >
-                  Practice Now
-                </button>
-              </div>
+              <button 
+                onClick={() => setPlayingVideo(video)}
+                className="w-full bg-primary text-on-primary font-medium py-3 px-4 rounded-full transition-opacity hover:opacity-90 flex items-center justify-center mt-2"
+              >
+                Practice Now
+              </button>
             </div>
           ))
         ) : (
-          <div className="col-span-full text-on-surface-variant bg-surface-container-low border border-outline-variant/30 rounded-3xl p-12 text-center text-lg shadow-sm">
+          <div className="col-span-full text-on-surface-variant p-12 text-center text-lg">
             You don't have any assignments right now. Enjoy your free time!
           </div>
         )}
