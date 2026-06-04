@@ -275,7 +275,7 @@ export default function TeacherDashboard() {
             {studentAttendances.length > 0 ? (
               <div className="bg-surface-container-low border border-outline-variant/30 rounded-2xl shadow-sm overflow-hidden flex flex-col">
                 {studentAttendances.map((record) => {
-                  const displayDate = new Date(record.date).toLocaleDateString('cs-CZ', {
+                  const displayDate = new Date(record.date).toLocaleDateString('en-US', {
                     day: 'numeric', month: 'long', year: 'numeric'
                   });
                   const isExpanded = !!expandedRecords[record.id];
@@ -509,7 +509,7 @@ export default function TeacherDashboard() {
                   {/* Quick Entry Buttons */}
                   <div className="mt-2 flex flex-col gap-4">
                     <div>
-                      <span className="text-sm font-medium text-on-surface-variant mb-2 block">Základy</span>
+                      <span className="text-sm font-medium text-on-surface-variant mb-2 block">Basics</span>
                       <div className="flex flex-wrap gap-2">
                         {["C Scale", "D Scale", "G Scale", "A Scale", "Ševčík", "Time Joggers", "Rick Mooney"].map(item => (
                           <button 
@@ -717,7 +717,7 @@ export default function TeacherDashboard() {
                   type="submit" 
                   className="flex-1 py-3 px-4 bg-primary hover:bg-primary-dim text-on-primary font-bold rounded-xl transition-colors shadow-sm"
                 >
-                  Přidat
+                  Add
                 </button>
               </div>
             </form>

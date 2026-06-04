@@ -32,7 +32,7 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
     // Detect "Book X" or "Book X Accomp" anywhere in the path
     // e.g. ./mp3/Suzuki mp3 Official/Book 1/01 - ...mp3
     //      ./mp3/Suzuki mp3 Official/Book 1 Accomp/22 - ...mp3
-    let folderPath = "Ostatní";
+    let folderPath = "Other";
     const bookMatch = path.match(/\/(Book\s+\d+(?:\s+Accomp)?)\//i);
     if (bookMatch) {
       folderPath = bookMatch[1]; // e.g. "Book 1" or "Book 1 Accomp"
@@ -148,16 +148,16 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
                        }
                      }}
                      className="hidden md:flex items-center gap-2 bg-surface-variant hover:bg-surface-container-highest border-none px-4 py-2 rounded-xl text-on-surface-variant hover:text-primary font-bold cursor-pointer transition-colors shadow-sm"
-                     title="Celá obrazovka"
+                     title="Fullscreen"
                    >
-                     Celá obrazovka
+                     Fullscreen
                    </button>
                  )}
                  <button 
                    onClick={() => setSelectedMedia(null)}
                    className="flex items-center gap-2 bg-surface-variant hover:bg-surface-container-highest border-none px-4 py-2 rounded-xl text-on-surface-variant hover:text-primary font-bold cursor-pointer transition-colors shadow-sm"
                  >
-                   Zavřít ✕
+                   Close ✕
                  </button>
                </div>
             </div>
@@ -172,7 +172,7 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
                      </div>
                      <audio ref={audioRef} onLoadedData={handleAudioLoad} src={selectedMedia.url} controls autoPlay className="w-full max-w-md shadow-md rounded-full" />
                      <div className="flex items-center gap-4 bg-surface-container-low p-4 rounded-xl border border-outline-variant/30 shadow-sm">
-                        <label htmlFor="speed" className="font-bold text-on-surface-variant">Rychlost:</label>
+                        <label htmlFor="speed" className="font-bold text-on-surface-variant">Speed:</label>
                         <select 
                           id="speed"
                           value={playbackSpeed}
@@ -181,7 +181,7 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
                         >
                           <option value="0.5">0.5x</option>
                           <option value="0.75">0.75x</option>
-                          <option value="1">1x (Normální)</option>
+                          <option value="1">1x (Normal)</option>
                           <option value="1.25">1.25x</option>
                           <option value="1.5">1.5x</option>
                         </select>
@@ -200,11 +200,11 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
             <div className="mb-14">
               <h2 className="font-headline text-3xl font-bold text-on-background mb-8 pb-4 border-b-2 border-outline-variant/30 flex items-center gap-3">
                 <Book className="text-tertiary" />
-                Knihy a Materiály
+                Books & Materials
               </h2>
               {Object.entries(groupedBooks).sort(sortFolders).map(([folder, fItems]) => (
                 <div key={folder} className="mb-8">
-                  <h3 className={`font-headline text-xl text-primary font-bold flex items-center gap-2 mb-6 ${folder !== "Ostatní" ? "mt-4" : "mt-0"}`}>
+                  <h3 className={`font-headline text-xl text-primary font-bold flex items-center gap-2 mb-6 ${folder !== "Other" ? "mt-4" : "mt-0"}`}>
                     <span className="text-2xl">📁</span> {folder}
                   </h3>
                   {renderGrid(sortFiles(fItems))}
@@ -217,11 +217,11 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
             <div className="mb-14">
               <h2 className="font-headline text-3xl font-bold text-on-background mb-8 pb-4 border-b-2 border-outline-variant/30 flex items-center gap-3">
                 <Play className="text-tertiary" />
-                Videa a Nahrávky
+                Videos & Recordings
               </h2>
               {Object.entries(groupedMedia).sort(sortFolders).map(([folder, fItems]) => (
                 <div key={folder} className="mb-8">
-                  <h3 className={`font-headline text-xl text-primary font-bold flex items-center gap-2 mb-6 ${folder !== "Ostatní" ? "mt-4" : "mt-0"}`}>
+                  <h3 className={`font-headline text-xl text-primary font-bold flex items-center gap-2 mb-6 ${folder !== "Other" ? "mt-4" : "mt-0"}`}>
                     <span className="text-2xl">📁</span> {folder}
                   </h3>
                   {renderGrid(sortFiles(fItems))}
@@ -232,7 +232,7 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
 
           {files.length === 0 && (
              <div className="text-center p-12 text-on-surface-variant bg-surface-container-low rounded-3xl border border-outline-variant/30 italic text-lg shadow-sm">
-               V této kategorii nejsou zatím dostupné žádné soubory.
+               No files are available in this category yet.
              </div>
           )}
         </>

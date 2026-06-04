@@ -133,12 +133,12 @@ export default function StudentDashboard() {
                          }
                        }}
                        className="hidden md:flex items-center gap-2 bg-surface-variant hover:bg-surface-container-highest border-none px-4 py-2 rounded-xl text-on-surface-variant hover:text-primary font-bold cursor-pointer transition-colors shadow-sm"
-                       title="Celá obrazovka"
+                       title="Fullscreen"
                      >
-                       Celá obrazovka
+                       Fullscreen
                      </button>
                    )}
-                   <button onClick={() => setPlayingVideo(null)} className="p-2 hover:bg-surface-variant text-on-surface-variant rounded-xl transition-colors shrink-0 outline-none" title="Zavřít">
+                   <button onClick={() => setPlayingVideo(null)} className="p-2 hover:bg-surface-variant text-on-surface-variant rounded-xl transition-colors shrink-0 outline-none" title="Close">
                      <X size={28} />
                    </button>
                  </div>
