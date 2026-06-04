@@ -86,13 +86,17 @@ export default function StudentDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {student.assignedVideos && student.assignedVideos.length > 0 ? (
           student.assignedVideos.map((video, index) => (
-            <div key={index} className="group p-6 flex flex-col gap-4 hover:bg-surface-container-lowest rounded-2xl transition-colors">
+            <div key={index} className="group bg-surface-container-low border border-outline-variant/30 hover:border-primary/50 p-6 flex flex-col gap-4 rounded-3xl transition-all shadow-sm hover:shadow-md">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 shrink-0 bg-surface-variant text-on-surface-variant rounded-full flex items-center justify-center">
-                  <Play size={24} className="ml-1" />
+                <div className={`w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center shadow-inner transition-transform duration-300 group-hover:scale-110 ${
+                  video.type === 'book' ? "bg-red-100 text-red-600" : 
+                  video.type === 'audio' ? "bg-amber-100 text-amber-600" : 
+                  "bg-secondary-container text-tertiary"
+                }`}>
+                  {video.type === 'book' ? <FileText size={28} /> : video.type === 'audio' ? <Headphones size={28} /> : <Play size={28} className="ml-1" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-headline text-xl font-medium text-on-background truncate" title={video.title}>
+                  <h3 className="font-headline text-xl font-bold text-on-background truncate" title={video.title}>
                     {video.title}
                   </h3>
                   <span className="text-on-surface-variant text-xs uppercase tracking-widest mt-1 block">
@@ -102,7 +106,7 @@ export default function StudentDashboard() {
               </div>
               <button 
                 onClick={() => setPlayingVideo(video)}
-                className="w-full bg-primary text-on-primary font-medium py-3 px-4 rounded-full transition-opacity hover:opacity-90 flex items-center justify-center mt-2"
+                className="w-full bg-primary text-on-primary font-medium py-3 px-4 rounded-full transition-opacity hover:opacity-90 flex items-center justify-center mt-2 cursor-pointer"
               >
                 Practice Now
               </button>
