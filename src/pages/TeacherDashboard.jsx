@@ -272,47 +272,50 @@ export default function TeacherDashboard() {
           {/* LEVÝ SLOUPEC: Záznamy z hodin (Docházka) */}
           <div>
             <h2 className="font-headline text-2xl font-bold text-on-background mb-6">Past Lessons</h2>
-            <div className="flex flex-col gap-4">
-              {studentAttendances.length > 0 ? (
-                studentAttendances.map((record) => {
+            {studentAttendances.length > 0 ? (
+              <div className="bg-surface-container-low border border-outline-variant/30 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+                {studentAttendances.map((record) => {
                   const displayDate = new Date(record.date).toLocaleDateString('cs-CZ', {
                     day: 'numeric', month: 'long', year: 'numeric'
                   });
                   const isExpanded = !!expandedRecords[record.id];
                   return (
-                    <div key={record.id} className="bg-surface-container-low border border-outline-variant/30 hover:border-primary/30 rounded-2xl p-4 flex flex-col shadow-sm hover:shadow-md transition-all">
+                    <div 
+                      key={record.id} 
+                      className="border-b border-outline-variant/20 last:border-b-0 hover:bg-surface-variant/10 transition-all p-3 flex flex-col"
+                    >
                       <div 
                         className="flex justify-between items-center cursor-pointer select-none" 
                         onClick={() => toggleRecord(record.id)}
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2.5">
                           <span className="text-on-surface-variant transition-transform duration-200">
-                            {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                            {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                           </span>
-                          <span className="font-headline font-bold text-base text-primary flex items-center gap-2">
-                            <Calendar size={18} className="text-tertiary" />
+                          <span className="font-headline font-bold text-sm text-primary flex items-center gap-2">
+                            <Calendar size={16} className="text-tertiary" />
                             {displayDate}
                           </span>
                         </div>
                         <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
                           <button 
                             onClick={() => openAttendanceModal(record)}
-                            className="p-2 text-on-surface-variant hover:text-primary hover:bg-surface-variant rounded-lg transition-colors"
+                            className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-variant rounded-lg transition-colors"
                             title="Edit"
                           >
-                            <Edit2 size={16} />
+                            <Edit2 size={14} />
                           </button>
                           <button 
                             onClick={() => handleRemoveAttendance(record.id)}
-                            className="p-2 text-on-surface-variant hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-1.5 text-on-surface-variant hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                             title="Delete"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={14} />
                           </button>
                         </div>
                       </div>
                       {isExpanded && (
-                        <div className="border-t border-outline-variant/20 pt-3 mt-2">
+                        <div className="border-t border-outline-variant/10 pt-2 mt-2 pl-7">
                           <p className="text-on-surface-variant leading-relaxed text-sm whitespace-pre-line">
                             {record.note || <span className="italic opacity-50">No note</span>}
                           </p>
@@ -320,15 +323,15 @@ export default function TeacherDashboard() {
                       )}
                     </div>
                   );
-                })
-              ) : (
-                <div className="text-center p-10 bg-surface-container-low rounded-3xl border border-outline-variant/30 text-on-surface-variant shadow-sm">
-                  <Calendar size={48} className="mx-auto mb-4 opacity-30" />
-                  <p className="text-lg font-medium mb-1">No lesson records</p>
-                  <p className="text-sm">Click the Log Lesson button above to add one.</p>
-                </div>
-              )}
-            </div>
+                })}
+              </div>
+            ) : (
+              <div className="text-center p-10 bg-surface-container-low rounded-3xl border border-outline-variant/30 text-on-surface-variant shadow-sm">
+                <Calendar size={48} className="mx-auto mb-4 opacity-30" />
+                <p className="text-lg font-medium mb-1">No lesson records</p>
+                <p className="text-sm">Click the Log Lesson button above to add one.</p>
+              </div>
+            )}
           </div>
 
           {/* PRAVÝ SLOUPEC: Materiály a úkoly */}
@@ -381,14 +384,14 @@ export default function TeacherDashboard() {
                 <div 
                   key={student.id} 
                   onClick={() => setSelectedStudentId(student.id)}
-                  className="group flex justify-between items-center p-4 sm:p-5 bg-surface-container-lowest hover:bg-surface-container-low rounded-2xl cursor-pointer transition-colors"
+                  className="group flex justify-between items-center p-4 sm:p-5 bg-surface-container-low border border-outline-variant/30 hover:bg-surface-container hover:border-primary/40 shadow-sm hover:shadow-md rounded-2xl cursor-pointer transition-all"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-surface-variant text-on-surface-variant rounded-full flex items-center justify-center font-medium text-lg uppercase">
+                    <div className="w-12 h-12 bg-surface-variant text-on-surface-variant rounded-full flex items-center justify-center font-bold text-xl uppercase">
                       {student.name.charAt(0)}
                     </div>
                     <div>
-                      <h3 className="font-headline text-lg font-medium text-on-background group-hover:text-primary transition-colors">{student.name}</h3>
+                      <h3 className="font-headline text-xl font-bold text-on-background group-hover:text-primary transition-colors">{student.name}</h3>
                       <span className="text-sm text-on-surface-variant">
                         {student.assignedVideos?.length || 0} materials
                       </span>
