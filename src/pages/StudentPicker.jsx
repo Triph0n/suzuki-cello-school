@@ -35,23 +35,23 @@ export default function StudentPicker() {
   if (loading) return <div className="text-on-surface-variant text-center mt-12 text-lg">Loading students...</div>;
 
   return (
-    <div className="max-w-4xl mx-auto py-8">
-      <h1 className="font-headline text-4xl md:text-5xl font-bold text-center text-primary mb-12 drop-shadow-sm">
+    <div className="max-w-4xl mx-auto py-6 sm:py-8">
+      <h1 className="font-headline text-2xl sm:text-4xl md:text-5xl font-bold text-center text-primary mb-6 sm:mb-8 drop-shadow-sm">
         Who is practicing today?
       </h1>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4">
         {students.map((student) => (
           <Link 
             key={student.id} 
             to={`/student/${student.id}`}
-            className="group block"
+            className="group block min-w-0"
           >
-            <div className="bg-surface-container-low hover:bg-surface-container border border-outline-variant/30 hover:border-primary/50 shadow-md hover:shadow-xl rounded-[2.5rem] p-8 flex flex-col items-center gap-6 transition-all duration-500 transform group-hover:-translate-y-2">
-              <div className="bg-secondary-container text-on-secondary-container rounded-full p-6 group-hover:scale-110 transition-transform duration-500 shadow-inner">
-                <User size={48} />
+            <div className="bg-surface-container-low hover:bg-surface-container border border-outline-variant/30 hover:border-primary/50 shadow-sm hover:shadow-md rounded-2xl p-3 sm:p-4 flex flex-col items-center gap-3 transition-all duration-300 transform group-hover:-translate-y-1">
+              <div className="bg-secondary-container text-on-secondary-container rounded-full p-2.5 sm:p-3 group-hover:scale-105 transition-transform duration-300 shadow-inner shrink-0">
+                <User size={20} className="sm:w-6 sm:h-6" />
               </div>
-              <h2 className="font-headline text-2xl font-bold text-on-background group-hover:text-primary transition-colors">
+              <h2 className="font-headline text-xs sm:text-sm md:text-base font-bold text-on-background group-hover:text-primary transition-colors text-center truncate w-full">
                 {student.name}
               </h2>
             </div>
