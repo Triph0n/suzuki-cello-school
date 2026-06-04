@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { subscribeToStudents, subscribeToMaterials, addStudent, deleteStudent, updateStudentVideos, addMaterial, deleteMaterial, subscribeToAttendances, addAttendance, deleteAttendance, editAttendance } from "../api";
-import { Play, X, Headphones, FileText, UserPlus, Plus, Book, Trash2, Calendar, ChevronLeft, Edit2, ChevronDown, ChevronRight } from "lucide-react";
+import { subscribeToStudents, subscribeToMaterials, addStudent, deleteStudent, updateStudentVideos, addMaterial, deleteMaterial, subscribeToAttendances, addAttendance, deleteAttendance, editAttendance, exportDatabasePayload, importDatabasePayload, resetDatabase } from "../api";
+import { Play, X, Headphones, FileText, UserPlus, Plus, Book, Trash2, Calendar, ChevronLeft, Edit2, ChevronDown, ChevronRight, Database, Upload, Download, RotateCcw } from "lucide-react";
 import { combinedPreTwinkleFiles, allCheckpointsFiles, allJoggersFiles, allBooksFiles, allSuzukiMp3OfficialFiles, formatMediaName } from "../mediaConfig";
 
 const getAvailableFiles = (globMap, categoryLabel) => {
@@ -179,6 +179,75 @@ export default function TeacherDashboard() {
     await deleteAttendance(attendanceId);
   };
 
+  const handleExportDatabase = () => {
+    try {
+      const payload = exportDatabasePayload();
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      const today = new Date().toISOString().split('T')[0];
+      downloadAnchor.setAttribute("download", `suzuki_cello_backup_${today}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    } catch (e) {
+      console.error(e);
+      alert("Failed to export database: " + e.message);
+    }
+  };
+
+  const handleImportDatabase = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = JSON.parse(e.target.result);
+        if (!json || typeof json !== 'object') {
+          throw new Error("Invalid file content format.");
+        }
+        
+        // Basic check for structural validity
+        const hasStudents = Array.isArray(json.students);
+        const hasMaterials = Array.isArray(json.materials);
+        const hasAttendances = Array.isArray(json.attendances);
+
+        if (!hasStudents && !hasMaterials && !hasAttendances) {
+          throw new Error("File does not contain valid backup data.");
+        }
+
+        const confirmMsg = "Are you sure you want to import this backup? This will overwrite your current students, materials, and lesson logs in this browser.";
+        if (!window.confirm(confirmMsg)) return;
+
+        importDatabasePayload(json);
+        alert("Backup successfully restored!");
+        // Clear file input value
+        event.target.value = "";
+      } catch (err) {
+        console.error(err);
+        alert("Failed to import database: " + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleResetDatabase = () => {
+    const confirm1 = window.confirm("WARNING: This will permanently delete all students, materials, and lesson records in this browser. Are you sure you want to continue?");
+    if (!confirm1) return;
+
+    const confirm2 = window.confirm("This action cannot be undone. Are you absolutely sure you want to reset the database?");
+    if (!confirm2) return;
+
+    try {
+      resetDatabase();
+      alert("Database reset successfully.");
+    } catch (e) {
+      console.error(e);
+      alert("Failed to reset database: " + e.message);
+    }
+  };
+
   const selectedStudent = students.find(s => s.id === selectedStudentId);
   const studentAttendances = attendances
     .filter(a => a.studentId === selectedStudentId)
@@ -334,81 +403,137 @@ export default function TeacherDashboard() {
         </div>
       ) : (
         /* --- MAIN DASHBOARD VIEW (List of all students & teacher materials) --- */
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {/* Left Column: Students List */}
-          <div>
-            <h2 className="font-headline text-2xl font-bold text-on-background mb-6">My Students</h2>
-            <div className="flex flex-col gap-4">
-              {students.map(student => (
-                <div 
-                  key={student.id} 
-                  onClick={() => setSelectedStudentId(student.id)}
-                  className="group flex justify-between items-center p-4 sm:p-5 bg-surface-container-low border border-outline-variant/30 hover:bg-surface-container hover:border-primary/40 shadow-sm hover:shadow-md rounded-2xl cursor-pointer transition-all"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-surface-variant text-on-surface-variant rounded-full flex items-center justify-center font-bold text-xl uppercase">
-                      {student.name.charAt(0)}
-                    </div>
-                    <div>
-                      <h3 className="font-headline text-xl font-bold text-on-background group-hover:text-primary transition-colors">{student.name}</h3>
-                      <span className="text-sm text-on-surface-variant">
-                        {student.assignedVideos?.length || 0} materials
-                      </span>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={(e) => handleRemoveStudent(student.id, e)}
-                    className="p-2 text-on-surface-variant hover:text-red-600 rounded-full transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-                    title="Remove student"
+        <div className="flex flex-col gap-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            {/* Left Column: Students List */}
+            <div>
+              <h2 className="font-headline text-2xl font-bold text-on-background mb-6">My Students</h2>
+              <div className="flex flex-col gap-4">
+                {students.map(student => (
+                  <div 
+                    key={student.id} 
+                    onClick={() => setSelectedStudentId(student.id)}
+                    className="group flex justify-between items-center p-4 sm:p-5 bg-surface-container-low border border-outline-variant/30 hover:bg-surface-container hover:border-primary/40 shadow-sm hover:shadow-md rounded-2xl cursor-pointer transition-all"
                   >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              ))}
-              {students.length === 0 && (
-                <div className="text-on-surface-variant text-center p-8 bg-surface-container-low rounded-3xl border border-outline-variant/30">No students here yet...</div>
-              )}
-            </div>
-          </div>
-
-          {/* Right Column: Teacher Materials */}
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="font-headline text-2xl font-bold text-on-background">My Materials</h2>
-               <button 
-                 onClick={() => { setAddMaterialModalOpen(true); setNewMaterialTitle(""); setNewMaterialCategory("PDF"); }}
-                 className="p-2 bg-secondary-container hover:bg-secondary-fixed-dim text-on-secondary-container rounded-lg transition-colors shadow-sm"
-                 title="Add material"
-               >
-                  <Plus size={18} />
-                </button>
-            </div>
-            
-            <div className="bg-surface-container-low border border-outline-variant/30 rounded-3xl p-6 shadow-sm flex flex-col gap-0">
-              {materials.length > 0 ? (
-                materials.map((mat) => (
-                  <div key={mat.id} className="flex items-center justify-between py-4 border-b border-outline-variant/20 last:border-0 last:pb-0 first:pt-0">
                     <div className="flex items-center gap-4">
-                      <Book size={28} className="text-tertiary hidden sm:block shrink-0" />
+                      <div className="w-12 h-12 bg-surface-variant text-on-surface-variant rounded-full flex items-center justify-center font-bold text-xl uppercase">
+                        {student.name.charAt(0)}
+                      </div>
                       <div>
-                        <h4 className="font-headline font-bold text-on-background m-0 text-lg">{mat.title}</h4>
-                        <span className="text-on-surface-variant text-sm font-medium inline-block mt-1 uppercase tracking-wide">{mat.category}</span>
+                        <h3 className="font-headline text-xl font-bold text-on-background group-hover:text-primary transition-colors">{student.name}</h3>
+                        <span className="text-sm text-on-surface-variant">
+                          {student.assignedVideos?.length || 0} materials
+                        </span>
                       </div>
                     </div>
                     <button 
-                      onClick={() => handleRemoveMaterial(mat.id)}
-                      className="p-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-colors shadow-sm shrink-0 ml-4"
-                      title="Remove material"
+                      onClick={(e) => handleRemoveStudent(student.id, e)}
+                      className="p-2 text-on-surface-variant hover:text-red-600 rounded-full transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                      title="Remove student"
                     >
                       <Trash2 size={18} />
                     </button>
                   </div>
-                ))
-              ) : (
-                <div className="text-center p-4">
-                   <span className="text-on-surface-variant text-sm font-medium">No materials yet. Click + to add.</span>
+                ))}
+                {students.length === 0 && (
+                  <div className="text-on-surface-variant text-center p-8 bg-surface-container-low rounded-3xl border border-outline-variant/30">No students here yet...</div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Column: Teacher Materials */}
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="font-headline text-2xl font-bold text-on-background">My Materials</h2>
+                <button 
+                  onClick={() => { setAddMaterialModalOpen(true); setNewMaterialTitle(""); setNewMaterialCategory("PDF"); }}
+                  className="p-2 bg-secondary-container hover:bg-secondary-fixed-dim text-on-secondary-container rounded-lg transition-colors shadow-sm"
+                  title="Add material"
+                >
+                  <Plus size={18} />
+                </button>
+              </div>
+              
+              <div className="bg-surface-container-low border border-outline-variant/30 rounded-3xl p-6 shadow-sm flex flex-col gap-0">
+                {materials.length > 0 ? (
+                  materials.map((mat) => (
+                    <div key={mat.id} className="flex items-center justify-between py-4 border-b border-outline-variant/20 last:border-0 last:pb-0 first:pt-0">
+                      <div className="flex items-center gap-4">
+                        <Book size={28} className="text-tertiary hidden sm:block shrink-0" />
+                        <div>
+                          <h4 className="font-headline font-bold text-on-background m-0 text-lg">{mat.title}</h4>
+                          <span className="text-on-surface-variant text-sm font-medium inline-block mt-1 uppercase tracking-wide">{mat.category}</span>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => handleRemoveMaterial(mat.id)}
+                        className="p-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-colors shadow-sm shrink-0 ml-4"
+                        title="Remove material"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center p-4">
+                     <span className="text-on-surface-variant text-sm font-medium">No materials yet. Click + to add.</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Database Management Card */}
+          <div className="bg-surface-container-low border border-outline-variant/30 rounded-3xl p-6 sm:p-8 shadow-sm">
+            <h2 className="font-headline text-2xl font-bold text-on-background mb-4 flex items-center gap-3">
+              <Database className="text-tertiary" size={24} />
+              Správa databáze (Database Management)
+            </h2>
+            <p className="text-on-surface-variant text-sm mb-6 max-w-2xl leading-relaxed">
+              Zde můžete zálohovat studenty, lekce a materiály do souboru pro jejich přenos do nové verze aplikace nebo na jiné zařízení. Data jsou uložena lokálně ve vašem prohlížeči.
+            </p>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Export Button */}
+              <button 
+                onClick={handleExportDatabase}
+                className="flex items-center justify-center gap-3 px-5 py-4 bg-secondary-container hover:bg-secondary-fixed-dim text-on-secondary-container rounded-2xl transition-all duration-300 font-bold shadow-sm hover:shadow-md border border-outline-variant/20 hover:-translate-y-0.5 cursor-pointer"
+              >
+                <Download size={20} className="shrink-0 text-primary" />
+                <div className="text-left min-w-0">
+                  <div className="text-sm font-semibold truncate text-on-secondary-container">Exportovat zálohu</div>
+                  <div className="text-[10px] font-normal opacity-85 truncate">Stáhnout JSON zálohu</div>
                 </div>
-              )}
+              </button>
+
+              {/* Import Button */}
+              <label 
+                className="flex items-center justify-center gap-3 px-5 py-4 bg-secondary-container hover:bg-secondary-fixed-dim text-on-secondary-container rounded-2xl transition-all duration-300 font-bold shadow-sm hover:shadow-md border border-outline-variant/20 hover:-translate-y-0.5 cursor-pointer"
+              >
+                <Upload size={20} className="shrink-0 text-primary" />
+                <div className="text-left min-w-0">
+                  <div className="text-sm font-semibold truncate text-on-secondary-container">Importovat zálohu</div>
+                  <div className="text-[10px] font-normal opacity-85 truncate">Nahrát JSON zálohu</div>
+                </div>
+                <input 
+                  type="file" 
+                  accept=".json" 
+                  onChange={handleImportDatabase} 
+                  className="hidden" 
+                />
+              </label>
+
+              {/* Reset Button */}
+              <button 
+                onClick={handleResetDatabase}
+                className="flex items-center justify-center gap-3 px-5 py-4 bg-red-100/50 hover:bg-red-100 text-red-700 rounded-2xl transition-all duration-300 font-bold shadow-sm hover:shadow-md border border-red-200 hover:-translate-y-0.5 cursor-pointer"
+              >
+                <RotateCcw size={20} className="shrink-0 text-red-600" />
+                <div className="text-left min-w-0">
+                  <div className="text-sm font-semibold truncate">Resetovat databázi</div>
+                  <div className="text-[10px] font-normal text-red-500/80 truncate">Smazat všechna data</div>
+                </div>
+              </button>
             </div>
           </div>
         </div>

@@ -117,3 +117,40 @@ export const editAttendance = async (attendanceId, newDate, newNote) => {
   );
   saveAttendances(attendances);
 };
+
+// -- DATABASE IMPORT/EXPORT & RESET API --
+
+export const exportDatabasePayload = () => {
+  return {
+    students: getStudents(),
+    materials: getMaterials(),
+    attendances: getAttendances()
+  };
+};
+
+export const importDatabasePayload = (payload) => {
+  if (payload.students) {
+    localStorage.setItem('local_students', JSON.stringify(payload.students));
+  }
+  if (payload.materials) {
+    localStorage.setItem('local_materials', JSON.stringify(payload.materials));
+  }
+  if (payload.attendances) {
+    localStorage.setItem('local_attendances', JSON.stringify(payload.attendances));
+  }
+  
+  // Dispatch events to notify all active listeners/subscribers in the UI
+  window.dispatchEvent(new Event('students_updated'));
+  window.dispatchEvent(new Event('materials_updated'));
+  window.dispatchEvent(new Event('attendances_updated'));
+};
+
+export const resetDatabase = () => {
+  localStorage.removeItem('local_students');
+  localStorage.removeItem('local_materials');
+  localStorage.removeItem('local_attendances');
+  
+  window.dispatchEvent(new Event('students_updated'));
+  window.dispatchEvent(new Event('materials_updated'));
+  window.dispatchEvent(new Event('attendances_updated'));
+};
