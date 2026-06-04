@@ -37,7 +37,7 @@ export default function StudentPicker() {
   return (
     <div className="max-w-4xl mx-auto py-6 sm:py-8">
       <h1 className="font-headline text-2xl sm:text-4xl md:text-5xl font-bold text-center text-primary mb-6 sm:mb-8 drop-shadow-sm">
-        Who is practicing today?
+        Suzuki Cello School
       </h1>
       
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4">
