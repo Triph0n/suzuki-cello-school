@@ -57,7 +57,7 @@ const Layout = ({ children }) => {
         <div className="flex justify-between items-center mb-8">
           <h1 className="font-headline text-2xl font-bold text-primary flex items-center gap-2">
             <Music size={28} className="text-tertiary" />
-            Suzuki Cello School
+            Suzuki Cello
           </h1>
           {/* Close button for mobile inside sidebar */}
           <button 
