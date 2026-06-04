@@ -32,11 +32,7 @@ const ASSIGNMENT_TABS = [
 
 export default function TeacherDashboard() {
 
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return sessionStorage.getItem("teacherAuth") === "true";
-  });
-  const [passwordInput, setPasswordInput] = useState("");
-  const [authError, setAuthError] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   const [students, setStudents] = useState([]);
   const [materials, setMaterials] = useState([]);
@@ -94,43 +90,6 @@ export default function TeacherDashboard() {
       if (unsubAttendances) unsubAttendances();
     };
   }, [isAuthenticated]);
-
-  if (!isAuthenticated) {
-    const handleLogin = (e) => {
-      e.preventDefault();
-      if (passwordInput.toLowerCase() === "cello") {
-        sessionStorage.setItem("teacherAuth", "true");
-        setIsAuthenticated(true);
-      } else {
-        setAuthError(true);
-      }
-    };
-
-    return (
-      <div className="max-w-md mx-auto py-20 px-6">
-        <div className="bg-surface-container-low border border-outline-variant/30 rounded-3xl p-8 shadow-md text-center">
-          <h2 className="font-headline text-2xl font-bold text-primary mb-6">Teacher Access</h2>
-          <form onSubmit={handleLogin} className="flex flex-col gap-4">
-            <input 
-              type="password" 
-              value={passwordInput}
-              onChange={(e) => { setPasswordInput(e.target.value); setAuthError(false); }}
-              placeholder="Enter password..." 
-              className="px-4 py-3 rounded-xl border border-outline-variant bg-surface-container text-on-background focus:outline-none focus:border-primary transition-colors text-center"
-              autoFocus
-            />
-            {authError && <p className="text-red-500 text-sm font-medium">Incorrect password</p>}
-            <button 
-              type="submit" 
-              className="px-6 py-3 bg-primary hover:bg-primary-dim text-on-primary rounded-xl font-bold transition-all shadow-sm"
-            >
-              Enter
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
 
   const initiateAddVideo = (studentId) => {
     setAssignModalStudentId(studentId);
