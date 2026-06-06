@@ -5,6 +5,7 @@ import StudentPicker from "./pages/StudentPicker";
 import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import VideoLibrary from "./pages/VideoLibrary";
+import TunerMetronome from "./components/TunerMetronome";
 
 // Load files using Vite's glob import
 import { combinedPreTwinkleFiles, allCheckpointsFiles, allJoggersFiles, allBooksFiles, allSuzukiMp3OfficialFiles } from "./mediaConfig";
@@ -79,6 +80,10 @@ const Layout = ({ children }) => {
               <NavLink to="/suzuki-mp3" icon={<Music size={20} />} label="Suzuki mp3 Official" />
             </>
           )}
+        </div>
+
+        <div className="mt-auto">
+          <TunerMetronome />
         </div>
 
         <div className="mt-8 pt-4 border-t border-outline-variant/30">
