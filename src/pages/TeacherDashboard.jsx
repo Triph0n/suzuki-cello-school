@@ -517,7 +517,7 @@ export default function TeacherDashboard() {
                 </div>
                 <input 
                   type="file" 
-                  accept=".json,application/json,text/plain" 
+                  accept="*/*" 
                   onChange={handleImportDatabase} 
                   className="hidden" 
                 />
