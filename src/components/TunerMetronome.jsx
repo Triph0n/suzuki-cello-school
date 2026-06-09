@@ -21,49 +21,57 @@ const getClosestString = (frequency) => (
   }, { ...STRINGS[0], cents: centsOff(frequency, STRINGS[0].freq) })
 );
 
-const autoCorrelate = (buffer, sampleRate) => {
+const autoCorrelate = (buf, sampleRate) => {
   let rms = 0;
-  for (let i = 0; i < buffer.length; i += 1) {
-    rms += buffer[i] * buffer[i];
+  for (let i = 0; i < buf.length; i += 1) {
+    rms += buf[i] * buf[i];
   }
-  rms = Math.sqrt(rms / buffer.length);
-  if (rms < 0.01) return null;
+  rms = Math.sqrt(rms / buf.length);
+  if (rms < 0.005) return null;
 
-  let start = 0;
-  let end = buffer.length - 1;
-  const threshold = 0.2;
+  let r1 = 0;
+  let r2 = buf.length - 1;
+  const thres = 0.01;
 
-  while (start < buffer.length / 2 && Math.abs(buffer[start]) < threshold) start += 1;
-  while (end > buffer.length / 2 && Math.abs(buffer[end]) < threshold) end -= 1;
+  for (let i = 0; i < buf.length / 2; i += 1) {
+    if (Math.abs(buf[i]) < thres) { r1 = i; break; }
+  }
+  for (let i = 1; i < buf.length / 2; i += 1) {
+    if (Math.abs(buf[buf.length - i]) < thres) { r2 = buf.length - i; break; }
+  }
 
-  const trimmed = buffer.slice(start, end);
-  const correlations = new Array(trimmed.length).fill(0);
+  const trimmed = buf.slice(r1, r2);
+  const size = trimmed.length;
+  const c = new Array(size).fill(0);
 
-  for (let lag = 0; lag < trimmed.length; lag += 1) {
-    for (let i = 0; i < trimmed.length - lag; i += 1) {
-      correlations[lag] += Math.abs(trimmed[i] - trimmed[i + lag]);
+  for (let i = 0; i < size; i += 1) {
+    for (let j = 0; j < size - i; j += 1) {
+      c[i] += trimmed[j] * trimmed[j + i];
     }
   }
 
-  let bestLag = -1;
-  let bestCorrelation = Number.POSITIVE_INFINITY;
-  let foundDip = false;
-
-  for (let lag = 2; lag < correlations.length; lag += 1) {
-    if (correlations[lag] < correlations[lag - 1]) {
-      foundDip = true;
-    } else if (foundDip) {
-      if (correlations[lag - 1] < bestCorrelation) {
-        bestCorrelation = correlations[lag - 1];
-        bestLag = lag - 1;
-      }
-      break;
+  let d = 0;
+  while (c[d] > c[d + 1]) d += 1;
+  let maxval = -1;
+  let maxpos = -1;
+  for (let i = d; i < size; i += 1) {
+    if (c[i] > maxval) {
+      maxval = c[i];
+      maxpos = i;
     }
   }
+  let T0 = maxpos;
 
-  if (bestLag <= 0) return null;
+  if (T0 > 0 && T0 < size - 1) {
+    const x1 = c[T0 - 1];
+    const x2 = c[T0];
+    const x3 = c[T0 + 1];
+    const a = (x1 + x3 - 2 * x2) / 2;
+    const b = (x3 - x1) / 2;
+    if (a) T0 -= b / (2 * a);
+  }
 
-  return sampleRate / bestLag;
+  return T0 ? sampleRate / T0 : null;
 };
 
 const TunerMetronome = () => {
@@ -328,10 +336,10 @@ const TunerMetronome = () => {
   const pitchLabel = !detectedFrequency
     ? ''
     : isInTune
-      ? 'Čistě'
+      ? 'In Tune'
       : pitchCents < 0
-        ? 'Nízko'
-        : 'Vysoko';
+        ? 'Flat'
+        : 'Sharp';
 
   return (
     <div className="bg-surface-container rounded-2xl p-4 shadow-sm border border-outline-variant/30 flex flex-col gap-4 mt-4">
@@ -388,7 +396,7 @@ const TunerMetronome = () => {
           <div className="absolute right-5 top-11 text-[10px] font-semibold text-on-surface-variant">HIGH</div>
           <div
             className={`absolute left-1/2 bottom-8 h-16 w-1 origin-bottom rounded-full transition-transform duration-150 ${
-              isInTune && detectedFrequency ? 'bg-secondary' : 'bg-primary'
+              isInTune && detectedFrequency ? 'bg-green-500' : 'bg-red-500'
             }`}
             style={{ transform: `translateX(-50%) rotate(${needleRotation}deg)` }}
           />
@@ -397,7 +405,7 @@ const TunerMetronome = () => {
             <span className="font-mono text-on-surface-variant">
               {detectedFrequency ? `${detectedFrequency.toFixed(1)} Hz` : '-- Hz'}
             </span>
-            <span className={`font-bold ${isInTune && detectedFrequency ? 'text-secondary' : 'text-primary'}`}>
+            <span className={`font-bold ${isInTune && detectedFrequency ? 'text-green-500' : 'text-red-500'}`}>
               {pitchLabel}
             </span>
             <span className="font-mono text-on-surface-variant">
