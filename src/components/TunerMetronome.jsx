@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Square, Mic2, Activity, Power } from 'lucide-react';
+import { Play, Square, Mic2, Activity, Power, Minus, Plus } from 'lucide-react';
 
 const STRINGS = [
   { name: 'A', freq: 442.0 },
@@ -99,6 +99,32 @@ const TunerMetronome = () => {
   const nextNoteTimeRef = useRef(0);
   const timerIDRef = useRef(null);
 
+  // Hold refs for continuous BPM adjustment
+  const holdIntervalRef = useRef(null);
+  const holdTimeoutRef = useRef(null);
+
+  const startBpmChange = (direction) => {
+    stopBpmChange();
+    setBpm((prev) => {
+      const next = prev + direction;
+      return Math.max(40, Math.min(240, next));
+    });
+
+    holdTimeoutRef.current = setTimeout(() => {
+      holdIntervalRef.current = setInterval(() => {
+        setBpm((prev) => {
+          const next = prev + direction;
+          return Math.max(40, Math.min(240, next));
+        });
+      }, 70);
+    }, 400);
+  };
+
+  const stopBpmChange = () => {
+    if (holdTimeoutRef.current) clearTimeout(holdTimeoutRef.current);
+    if (holdIntervalRef.current) clearInterval(holdIntervalRef.current);
+  };
+
   useEffect(() => {
     bpmRef.current = bpm;
   }, [bpm]);
@@ -158,10 +184,12 @@ const TunerMetronome = () => {
     }
   };
 
-  // Stop metronome on unmount
+  // Stop metronome and clean up hold timers on unmount
   useEffect(() => {
     return () => {
       if (timerIDRef.current) window.clearTimeout(timerIDRef.current);
+      if (holdTimeoutRef.current) clearTimeout(holdTimeoutRef.current);
+      if (holdIntervalRef.current) clearInterval(holdIntervalRef.current);
     };
   }, []);
 
@@ -351,21 +379,47 @@ const TunerMetronome = () => {
           </span>
           <span className="text-xs font-mono bg-surface-variant px-2 py-1 rounded-md">{bpm} BPM</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={toggleMetronome}
             className={`p-2 rounded-full flex-shrink-0 transition-colors ${isMetronomePlaying ? 'bg-error text-on-error' : 'bg-primary text-on-primary'}`}
+            title={isMetronomePlaying ? 'Zastavit metronom' : 'Spustit metronom'}
           >
             {isMetronomePlaying ? <Square size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
           </button>
+          
+          <button
+            onPointerDown={() => startBpmChange(-1)}
+            onPointerUp={stopBpmChange}
+            onPointerLeave={stopBpmChange}
+            onPointerCancel={stopBpmChange}
+            className="w-8 h-8 rounded-lg bg-surface-variant hover:bg-surface-container-high active:scale-95 transition-all text-on-surface flex items-center justify-center flex-shrink-0 select-none touch-none"
+            title="Snížit tempo (přidržením plynule)"
+            aria-label="Snížit tempo"
+          >
+            <Minus size={14} />
+          </button>
+
           <input
             type="range"
             min="40"
             max="240"
             value={bpm}
             onChange={(e) => setBpm(parseInt(e.target.value, 10))}
-            className="flex-grow accent-primary"
+            className="flex-grow accent-primary cursor-pointer min-w-0"
           />
+
+          <button
+            onPointerDown={() => startBpmChange(1)}
+            onPointerUp={stopBpmChange}
+            onPointerLeave={stopBpmChange}
+            onPointerCancel={stopBpmChange}
+            className="w-8 h-8 rounded-lg bg-surface-variant hover:bg-surface-container-high active:scale-95 transition-all text-on-surface flex items-center justify-center flex-shrink-0 select-none touch-none"
+            title="Zvýšit tempo (přidržením plynule)"
+            aria-label="Zvýšit tempo"
+          >
+            <Plus size={14} />
+          </button>
         </div>
       </div>
 
