@@ -1,0 +1,15 @@
+.git
+.wrangler
+dist
+node_modules
+server/node_modules
+logs
+*.log
+*.local
+
+src/books
+src/mp3
+src/video
+
+download_metronome.py
+upload_missing_books.py

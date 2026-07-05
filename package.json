@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:offline": "vite --host 127.0.0.1 --port 5173 --strictPort",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server:check": "npm --prefix server run check"
   },
   "dependencies": {
     "firebase": "^12.12.0",

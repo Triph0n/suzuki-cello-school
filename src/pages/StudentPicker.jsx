@@ -21,8 +21,12 @@ export default function StudentPicker() {
     } catch (e) {
       console.warn("Error subscribing to students", e);
       if (isMounted) {
-        setStudents([]);
-        setLoading(false);
+        setTimeout(() => {
+          if (isMounted) {
+            setStudents([]);
+            setLoading(false);
+          }
+        }, 0);
       }
     }
 

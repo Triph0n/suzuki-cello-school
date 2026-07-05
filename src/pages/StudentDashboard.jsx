@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import { subscribeToStudents, getStudents } from "../api";
+import { subscribeToStudents, getStudents, importStudent } from "../api";
 import { Play, X, Headphones, FileText } from "lucide-react";
 import { allMediaFiles } from "../mediaConfig";
 
@@ -39,6 +39,24 @@ export default function StudentDashboard() {
     let isMounted = true;
     let unsubscribe;
 
+    // Check for encoded student data in the URL
+    const searchParams = new URLSearchParams(window.location.search);
+    const dParam = searchParams.get('d');
+    if (dParam) {
+      try {
+        const decoded = decodeURIComponent(escape(atob(dParam)));
+        const imported = JSON.parse(decoded);
+        if (imported && imported.id === id) {
+          importStudent(imported);
+          // Clean up URL parameters
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, newUrl);
+        }
+      } catch (e) {
+        console.error("Failed to parse shared student data:", e);
+      }
+    }
+
     const fallbackTimeout = setTimeout(() => {
       if (isMounted) {
         setStudent(getStudents().find(s => s.id === id));
@@ -55,11 +73,15 @@ export default function StudentDashboard() {
           setLoading(false);
         }
       });
-    } catch (e) {
+    } catch {
       if (isMounted) {
-        clearTimeout(fallbackTimeout);
-        setStudent(getStudents().find(s => s.id === id));
-        setLoading(false);
+        setTimeout(() => {
+          if (isMounted) {
+            clearTimeout(fallbackTimeout);
+            setStudent(getStudents().find(s => s.id === id));
+            setLoading(false);
+          }
+        }, 0);
       }
     }
 

@@ -1,7 +1,11 @@
 import manifest from './mediaManifest.json';
 
-// We now use the Cloudflare Pages Function endpoint instead of the direct R2 URL
+const MEDIA_BACKEND = import.meta.env.VITE_MEDIA_BACKEND || "cloudflare";
+const USE_LOCAL_MEDIA = MEDIA_BACKEND === "local";
+
+// Server/cloud builds use the Cloudflare Pages Function endpoint.
 const R2_BASE_URL = "/api/media";
+const LOCAL_MEDIA_BASE_URL = "/src";
 
 // R2 bucket uses 'Video/' (capital V) but manifest has lowercase 'video/'
 // This map corrects the casing for each top-level folder
@@ -26,11 +30,25 @@ function mapToR2(fileObj) {
   return mapped;
 }
 
-export const combinedPreTwinkleFiles = mapToR2({ ...manifest.preTwinkleFiles, ...manifest.preTwinkleMp3Files });
-export const allCheckpointsFiles = mapToR2(manifest.checkpointsFiles);
-export const allJoggersFiles = mapToR2(manifest.joggersFiles);
-export const allBooksFiles = mapToR2(manifest.booksLibraryFiles);
-export const allSuzukiMp3OfficialFiles = mapToR2(manifest.suzukiMp3OfficialFiles);
+function mapToLocal(fileObj) {
+  const mapped = {};
+  for (const [key, val] of Object.entries(fileObj)) {
+    const cleanPath = val.replace(/^\.\//, '');
+    const encodedPath = cleanPath.split('/').map(part => encodeURIComponent(part)).join('/');
+    mapped[key] = `${LOCAL_MEDIA_BASE_URL}/${encodedPath}`;
+  }
+  return mapped;
+}
+
+function mapMedia(fileObj) {
+  return USE_LOCAL_MEDIA ? mapToLocal(fileObj) : mapToR2(fileObj);
+}
+
+export const combinedPreTwinkleFiles = mapMedia({ ...manifest.preTwinkleFiles, ...manifest.preTwinkleMp3Files });
+export const allCheckpointsFiles = mapMedia(manifest.checkpointsFiles);
+export const allJoggersFiles = mapMedia(manifest.joggersFiles);
+export const allBooksFiles = mapMedia(manifest.booksLibraryFiles);
+export const allSuzukiMp3OfficialFiles = mapMedia(manifest.suzukiMp3OfficialFiles);
 
 export const allMediaFiles = {
   ...combinedPreTwinkleFiles,
@@ -48,7 +66,7 @@ export function formatMediaName(path) {
   let name = filename.replace(/\.(mp4|m4v|pdf|avi|mov|mp3|wav)$/i, '');
   try {
     name = decodeURIComponent(name);
-  } catch (e) {
+  } catch {
     // Ignore decoding errors
   }
   name = name.replace(/^Exercise\s+(No\.?\s*)?/i, '');

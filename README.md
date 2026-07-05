@@ -1,16 +1,24 @@
-# React + Vite
+# Suzuki Cello School App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project now has two intentional paths:
 
-Currently, two official plugins are available:
+- Offline/local app: starts from `start_offline.cmd`, uses browser storage, and reads local media from `src/video`, `src/mp3`, and `src/books`.
+- Server/VPS portal: lives in `server/`, Docker, Compose, and `DEPLOYMENT.md`, with PostgreSQL data and Cloudflare media.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Offline Start
 
-## React Compiler
+Double-click `start_offline.cmd`.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The app opens at `http://127.0.0.1:5173` and runs without the VPS server. See `OFFLINE.md` for the exact behavior.
 
-## Expanding the ESLint configuration
+## Development
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```sh
+npm run dev:offline
+npm run build
+npm run server:check
+```
+
+## Server Portal
+
+The online portal work is documented in `PRD.md`, `technicaldesign.md`, `task.md`, and `DEPLOYMENT.md`.

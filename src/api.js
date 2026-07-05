@@ -1,121 +1,307 @@
-// -- STUDENTS API (Local Storage) --
+const DATA_BACKEND = import.meta.env.VITE_DATA_BACKEND || "local";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+const USE_SERVER = DATA_BACKEND === "server";
 
-export const getStudents = () => {
-  const students = localStorage.getItem('local_students');
+const serverCache = {
+  students: [],
+  materials: [],
+  attendances: []
+};
+
+const notify = (eventName) => {
+  window.dispatchEvent(new Event(eventName));
+};
+
+async function apiFetch(path, options = {}) {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    },
+    ...options
+  });
+
+  if (!response.ok) {
+    let message = `Request failed: ${response.status}`;
+    try {
+      const errorBody = await response.json();
+      if (errorBody?.error) message = errorBody.error;
+    } catch {
+      // Keep the status-based error.
+    }
+    throw new Error(message);
+  }
+
+  if (response.status === 204) return null;
+  return response.json();
+}
+
+const getLocalStudents = () => {
+  const students = localStorage.getItem("local_students");
   return students ? JSON.parse(students) : [];
 };
 
-const saveStudents = (students) => {
-  localStorage.setItem('local_students', JSON.stringify(students));
-  window.dispatchEvent(new Event('students_updated'));
+const saveLocalStudents = (students) => {
+  localStorage.setItem("local_students", JSON.stringify(students));
+  notify("students_updated");
 };
 
-// Listen to all students (real-time substitute)
-export const subscribeToStudents = (callback) => {
-  callback(getStudents());
-  const handler = () => callback(getStudents());
-  window.addEventListener('students_updated', handler);
-  return () => window.removeEventListener('students_updated', handler);
-};
-
-// Add a new student
-export const addStudent = async (name) => {
-  const students = getStudents();
-  students.push({ id: Date.now().toString(), name, assignedVideos: [] });
-  saveStudents(students);
-};
-
-// Delete a student
-export const deleteStudent = async (studentId) => {
-  const students = getStudents().filter(s => s.id !== studentId);
-  saveStudents(students);
-};
-
-// Edit a student (UPDATE operation)
-export const editStudent = async (studentId, newName) => {
-  const students = getStudents().map(s => s.id === studentId ? { ...s, name: newName } : s);
-  saveStudents(students);
-};
-
-// Assign/Remove a video to a student
-export const updateStudentVideos = async (studentId, assignedVideos) => {
-  const students = getStudents().map(s => s.id === studentId ? { ...s, assignedVideos } : s);
-  saveStudents(students);
-};
-
-// -- TEACHER MATERIALS API (Local Storage) --
-
-export const getMaterials = () => {
-  const materials = localStorage.getItem('local_materials');
+const getLocalMaterials = () => {
+  const materials = localStorage.getItem("local_materials");
   return materials ? JSON.parse(materials) : [];
 };
 
-const saveMaterials = (materials) => {
-  localStorage.setItem('local_materials', JSON.stringify(materials));
-  window.dispatchEvent(new Event('materials_updated'));
+const saveLocalMaterials = (materials) => {
+  localStorage.setItem("local_materials", JSON.stringify(materials));
+  notify("materials_updated");
 };
 
-export const subscribeToMaterials = (callback) => {
-  callback(getMaterials());
-  const handler = () => callback(getMaterials());
-  window.addEventListener('materials_updated', handler);
-  return () => window.removeEventListener('materials_updated', handler);
-};
-
-export const addMaterial = async (materialData) => {
-  const materials = getMaterials();
-  materials.push({ id: Date.now().toString(), ...materialData });
-  saveMaterials(materials);
-};
-
-export const deleteMaterial = async (materialId) => {
-  const materials = getMaterials().filter(m => m.id !== materialId);
-  saveMaterials(materials);
-};
-
-// -- ATTENDANCE API (Local Storage) --
-
-export const getAttendances = () => {
-  const attendances = localStorage.getItem('local_attendances');
+const getLocalAttendances = () => {
+  const attendances = localStorage.getItem("local_attendances");
   return attendances ? JSON.parse(attendances) : [];
 };
 
-const saveAttendances = (attendances) => {
-  localStorage.setItem('local_attendances', JSON.stringify(attendances));
-  window.dispatchEvent(new Event('attendances_updated'));
+const saveLocalAttendances = (attendances) => {
+  localStorage.setItem("local_attendances", JSON.stringify(attendances));
+  notify("attendances_updated");
+};
+
+async function refreshStudents() {
+  if (!USE_SERVER) return getLocalStudents();
+  const payload = await apiFetch("/api/students");
+  serverCache.students = payload.students || [];
+  return serverCache.students;
+}
+
+async function refreshMaterials() {
+  if (!USE_SERVER) return getLocalMaterials();
+  const payload = await apiFetch("/api/materials");
+  serverCache.materials = payload.materials || [];
+  return serverCache.materials;
+}
+
+async function refreshAttendances() {
+  if (!USE_SERVER) return getLocalAttendances();
+  const payload = await apiFetch("/api/lesson-notes");
+  serverCache.attendances = payload.attendances || [];
+  return serverCache.attendances;
+}
+
+function subscribe(eventName, loader, callback) {
+  let active = true;
+  const run = async () => {
+    try {
+      const data = await loader();
+      if (active) callback(data);
+    } catch (error) {
+      console.warn(`Failed to load ${eventName}`, error);
+      if (active) callback([]);
+    }
+  };
+
+  const handler = () => {
+    run();
+  };
+
+  run();
+  window.addEventListener(eventName, handler);
+
+  return () => {
+    active = false;
+    window.removeEventListener(eventName, handler);
+  };
+}
+
+// -- STUDENTS API --
+
+export const getStudents = () => {
+  return USE_SERVER ? serverCache.students : getLocalStudents();
+};
+
+export const subscribeToStudents = (callback) => {
+  return subscribe("students_updated", refreshStudents, callback);
+};
+
+export const addStudent = async (name) => {
+  if (USE_SERVER) {
+    await apiFetch("/api/students", {
+      method: "POST",
+      body: JSON.stringify({ name })
+    });
+    notify("students_updated");
+    return;
+  }
+
+  const students = getLocalStudents();
+  students.push({ id: Date.now().toString(), name, assignedVideos: [] });
+  saveLocalStudents(students);
+};
+
+export const deleteStudent = async (studentId) => {
+  if (USE_SERVER) {
+    await apiFetch(`/api/students/${encodeURIComponent(studentId)}`, { method: "DELETE" });
+    notify("students_updated");
+    notify("attendances_updated");
+    return;
+  }
+
+  const students = getLocalStudents().filter((student) => student.id !== studentId);
+  saveLocalStudents(students);
+};
+
+export const editStudent = async (studentId, newName) => {
+  if (USE_SERVER) {
+    await apiFetch(`/api/students/${encodeURIComponent(studentId)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ name: newName })
+    });
+    notify("students_updated");
+    return;
+  }
+
+  const students = getLocalStudents().map((student) =>
+    student.id === studentId ? { ...student, name: newName } : student
+  );
+  saveLocalStudents(students);
+};
+
+export const updateStudentVideos = async (studentId, assignedVideos) => {
+  if (USE_SERVER) {
+    await apiFetch(`/api/students/${encodeURIComponent(studentId)}/materials`, {
+      method: "PUT",
+      body: JSON.stringify({ assignedVideos })
+    });
+    notify("students_updated");
+    return;
+  }
+
+  const students = getLocalStudents().map((student) =>
+    student.id === studentId ? { ...student, assignedVideos } : student
+  );
+  saveLocalStudents(students);
+};
+
+export const importStudent = async (student) => {
+  const students = getStudents();
+  const index = students.findIndex((existing) => existing.id === student.id);
+  const nextStudent = {
+    ...student,
+    assignedVideos: student.assignedVideos || []
+  };
+
+  if (index > -1) {
+    students[index] = {
+      ...students[index],
+      name: nextStudent.name,
+      assignedVideos: nextStudent.assignedVideos
+    };
+  } else {
+    students.push(nextStudent);
+  }
+
+  if (USE_SERVER) {
+    serverCache.students = [...students];
+    notify("students_updated");
+    return;
+  }
+
+  saveLocalStudents(students);
+};
+
+// -- TEACHER MATERIALS API --
+
+export const getMaterials = () => {
+  return USE_SERVER ? serverCache.materials : getLocalMaterials();
+};
+
+export const subscribeToMaterials = (callback) => {
+  return subscribe("materials_updated", refreshMaterials, callback);
+};
+
+export const addMaterial = async (materialData) => {
+  if (USE_SERVER) {
+    await apiFetch("/api/materials", {
+      method: "POST",
+      body: JSON.stringify(materialData)
+    });
+    notify("materials_updated");
+    return;
+  }
+
+  const materials = getLocalMaterials();
+  materials.push({ id: Date.now().toString(), ...materialData });
+  saveLocalMaterials(materials);
+};
+
+export const deleteMaterial = async (materialId) => {
+  if (USE_SERVER) {
+    await apiFetch(`/api/materials/${encodeURIComponent(materialId)}`, { method: "DELETE" });
+    notify("materials_updated");
+    return;
+  }
+
+  const materials = getLocalMaterials().filter((material) => material.id !== materialId);
+  saveLocalMaterials(materials);
+};
+
+// -- ATTENDANCE API --
+
+export const getAttendances = () => {
+  return USE_SERVER ? serverCache.attendances : getLocalAttendances();
 };
 
 export const subscribeToAttendances = (callback) => {
-  callback(getAttendances());
-  const handler = () => callback(getAttendances());
-  window.addEventListener('attendances_updated', handler);
-  return () => window.removeEventListener('attendances_updated', handler);
+  return subscribe("attendances_updated", refreshAttendances, callback);
 };
 
-// Přidání záznamu z hodiny
 export const addAttendance = async (studentId, date, note) => {
-  const attendances = getAttendances();
+  if (USE_SERVER) {
+    await apiFetch("/api/lesson-notes", {
+      method: "POST",
+      body: JSON.stringify({ studentId, date, note })
+    });
+    notify("attendances_updated");
+    return;
+  }
+
+  const attendances = getLocalAttendances();
   attendances.push({
     id: Date.now().toString(),
     studentId,
-    date, // YYYY-MM-DD
+    date,
     note
   });
-  saveAttendances(attendances);
+  saveLocalAttendances(attendances);
 };
 
-// Smazání záznamu z hodiny
 export const deleteAttendance = async (attendanceId) => {
-  const attendances = getAttendances().filter(a => a.id !== attendanceId);
-  saveAttendances(attendances);
+  if (USE_SERVER) {
+    await apiFetch(`/api/lesson-notes/${encodeURIComponent(attendanceId)}`, { method: "DELETE" });
+    notify("attendances_updated");
+    return;
+  }
+
+  const attendances = getLocalAttendances().filter((attendance) => attendance.id !== attendanceId);
+  saveLocalAttendances(attendances);
 };
 
-// Editace záznamu z hodiny
 export const editAttendance = async (attendanceId, newDate, newNote) => {
-  const attendances = getAttendances().map(a => 
-    a.id === attendanceId ? { ...a, date: newDate, note: newNote } : a
+  if (USE_SERVER) {
+    await apiFetch(`/api/lesson-notes/${encodeURIComponent(attendanceId)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ newDate, newNote })
+    });
+    notify("attendances_updated");
+    return;
+  }
+
+  const attendances = getLocalAttendances().map((attendance) =>
+    attendance.id === attendanceId
+      ? { ...attendance, date: newDate, note: newNote }
+      : attendance
   );
-  saveAttendances(attendances);
+  saveLocalAttendances(attendances);
 };
 
 // -- DATABASE IMPORT/EXPORT & RESET API --
@@ -129,28 +315,55 @@ export const exportDatabasePayload = () => {
 };
 
 export const importDatabasePayload = (payload) => {
+  if (USE_SERVER) {
+    apiFetch("/api/admin/import", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    }).then(() => {
+      notify("students_updated");
+      notify("materials_updated");
+      notify("attendances_updated");
+    }).catch((error) => {
+      console.error("Failed to import server database payload", error);
+    });
+    return;
+  }
+
   if (payload.students) {
-    localStorage.setItem('local_students', JSON.stringify(payload.students));
+    localStorage.setItem("local_students", JSON.stringify(payload.students));
   }
   if (payload.materials) {
-    localStorage.setItem('local_materials', JSON.stringify(payload.materials));
+    localStorage.setItem("local_materials", JSON.stringify(payload.materials));
   }
   if (payload.attendances) {
-    localStorage.setItem('local_attendances', JSON.stringify(payload.attendances));
+    localStorage.setItem("local_attendances", JSON.stringify(payload.attendances));
   }
-  
-  // Dispatch events to notify all active listeners/subscribers in the UI
-  window.dispatchEvent(new Event('students_updated'));
-  window.dispatchEvent(new Event('materials_updated'));
-  window.dispatchEvent(new Event('attendances_updated'));
+
+  notify("students_updated");
+  notify("materials_updated");
+  notify("attendances_updated");
 };
 
 export const resetDatabase = () => {
-  localStorage.removeItem('local_students');
-  localStorage.removeItem('local_materials');
-  localStorage.removeItem('local_attendances');
-  
-  window.dispatchEvent(new Event('students_updated'));
-  window.dispatchEvent(new Event('materials_updated'));
-  window.dispatchEvent(new Event('attendances_updated'));
+  if (USE_SERVER) {
+    apiFetch("/api/admin/reset", { method: "POST" }).then(() => {
+      serverCache.students = [];
+      serverCache.materials = [];
+      serverCache.attendances = [];
+      notify("students_updated");
+      notify("materials_updated");
+      notify("attendances_updated");
+    }).catch((error) => {
+      console.error("Failed to reset server database", error);
+    });
+    return;
+  }
+
+  localStorage.removeItem("local_students");
+  localStorage.removeItem("local_materials");
+  localStorage.removeItem("local_attendances");
+
+  notify("students_updated");
+  notify("materials_updated");
+  notify("attendances_updated");
 };

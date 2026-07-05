@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { subscribeToStudents, subscribeToMaterials, addStudent, deleteStudent, updateStudentVideos, addMaterial, deleteMaterial, subscribeToAttendances, addAttendance, deleteAttendance, editAttendance, exportDatabasePayload, importDatabasePayload, resetDatabase } from "../api";
-import { Play, X, Headphones, FileText, UserPlus, Plus, Book, Trash2, Calendar, ChevronLeft, Edit2, ChevronDown, ChevronRight, Database, Upload, Download, RotateCcw } from "lucide-react";
+import { Play, X, Headphones, FileText, UserPlus, Plus, Book, Trash2, Calendar, ChevronLeft, Edit2, ChevronDown, ChevronRight, Database, Upload, Download, RotateCcw, Share2 } from "lucide-react";
 import { combinedPreTwinkleFiles, allCheckpointsFiles, allJoggersFiles, allBooksFiles, allSuzukiMp3OfficialFiles, formatMediaName } from "../mediaConfig";
 
 const getAvailableFiles = (globMap, categoryLabel) => {
-  return Object.entries(globMap).map(([path, url]) => {
+  return Object.keys(globMap).map((path) => {
     const parts = path.split('/');
     const folder = parts.length > 2 ? parts.slice(2, -1).join(' / ') : "";
     const extension = path.split('.').pop().toLowerCase();
@@ -32,13 +32,14 @@ const ASSIGNMENT_TABS = [
 
 export default function TeacherDashboard() {
 
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const isAuthenticated = true;
 
   const [students, setStudents] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [attendances, setAttendances] = useState([]);
   
   const [selectedStudentId, setSelectedStudentId] = useState(null);
+  const [copied, setCopied] = useState(false);
   
   // Track which attendance records are expanded
   const [expandedRecords, setExpandedRecords] = useState({});
@@ -51,7 +52,10 @@ export default function TeacherDashboard() {
   };
 
   useEffect(() => {
-    setExpandedRecords({});
+    const timer = setTimeout(() => {
+      setExpandedRecords({});
+    }, 0);
+    return () => clearTimeout(timer);
   }, [selectedStudentId]);
   
   // Attendance modal states
@@ -179,6 +183,28 @@ export default function TeacherDashboard() {
     await deleteAttendance(attendanceId);
   };
 
+  const handleShareStudentLink = () => {
+    const targetStudent = students.find(s => s.id === selectedStudentId);
+    if (!targetStudent) return;
+    try {
+      const shareData = {
+        id: targetStudent.id,
+        name: targetStudent.name,
+        assignedVideos: targetStudent.assignedVideos || []
+      };
+      const jsonStr = JSON.stringify(shareData);
+      const base64Data = btoa(unescape(encodeURIComponent(jsonStr)));
+      const shareUrl = `${window.location.origin}/student/${targetStudent.id}?d=${encodeURIComponent(base64Data)}`;
+      
+      navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to copy link: " + e.message);
+    }
+  };
+
   const handleExportDatabase = () => {
     try {
       const payload = exportDatabasePayload();
@@ -284,13 +310,26 @@ export default function TeacherDashboard() {
         )}
         
         {selectedStudentId && (
-          <button 
-            onClick={() => openAttendanceModal()}
-            className="flex items-center gap-2 px-6 py-3 bg-tertiary hover:bg-tertiary/90 text-on-primary border-none rounded-xl font-bold cursor-pointer transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-1"
-          >
-            <Calendar size={20} />
-            <span>Log Lesson</span>
-          </button>
+          <div className="flex gap-2.5">
+            <button 
+              onClick={handleShareStudentLink}
+              className={`flex items-center gap-2 px-5 py-3 border rounded-xl font-bold cursor-pointer transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-1 ${
+                copied 
+                  ? "bg-green-100 border-green-300 text-green-800" 
+                  : "bg-secondary-container border-outline-variant/30 text-on-secondary-container hover:bg-secondary-fixed-dim"
+              }`}
+            >
+              <Share2 size={20} />
+              <span>{copied ? "Kopírováno!" : "Sdílet odkaz"}</span>
+            </button>
+            <button 
+              onClick={() => openAttendanceModal()}
+              className="flex items-center gap-2 px-6 py-3 bg-tertiary hover:bg-tertiary/90 text-on-primary border-none rounded-xl font-bold cursor-pointer transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-1"
+            >
+              <Calendar size={20} />
+              <span>Log Lesson</span>
+            </button>
+          </div>
         )}
       </div>
 
