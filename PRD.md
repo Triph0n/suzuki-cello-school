@@ -62,3 +62,38 @@ Move the Suzuki Cello app from browser-local student data to a VPS-backed portal
 - Cloudflare remains the source for media delivery.
 - Backups must leave the VPS; a local VPS dump alone is not enough.
 - Child/student data should stay minimal and private.
+
+## Gamification Band Builder Add-on
+
+### Goal
+
+Turn the existing Animal Orchestra sticker album into a more active band-building loop: a child collects musicians, equips them with instruments, completes bands of different sizes, and plays a short concert when a band is ready.
+
+### User Value
+
+- Children get a clearer reason to keep practicing: every session can move a band closer to playing.
+- Parents and teachers still see a healthy practice loop that rewards rhythm and consistency instead of excessive minutes.
+- The existing sticker, note, chest, and localStorage gamification work remains useful instead of being replaced.
+
+### Scope
+
+- Add multiple band definitions with different sizes.
+- Reuse the existing collectible musician artwork.
+- Add instrument-equipping using the existing notes currency.
+- Add a concert state for completed bands with a short visual and audio reward.
+- Keep the feature local-first for now, matching the current gamification storage.
+
+### Non-Goals
+
+- Real-money purchases, ads, or paid unlocks.
+- Public leaderboards.
+- Backend migration for gamification data in this pass.
+- Full generated music or recorded backing tracks.
+
+### Acceptance Criteria
+
+- The student dashboard shows band progress, not only a flat sticker album.
+- Each band shows required musicians, missing players, equipped players, and readiness.
+- A collected musician can be equipped with an instrument when the child has enough notes.
+- Completed bands expose a play action that opens a concert celebration.
+- Existing practice reward behavior still works and the frontend build succeeds.

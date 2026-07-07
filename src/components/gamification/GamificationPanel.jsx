@@ -11,7 +11,7 @@ import {
 import CellinoWidget from "./CellinoWidget";
 import PracticeTimer from "./PracticeTimer";
 import BalanceWeek from "./BalanceWeek";
-import StickerAlbum from "./StickerAlbum";
+import BandWorkshop from "./BandWorkshop";
 import RewardModal from "./RewardModal";
 
 export default function GamificationPanel({ studentId, mediaActive }) {
@@ -82,7 +82,7 @@ export default function GamificationPanel({ studentId, mediaActive }) {
           notes={state.notes}
           onChangeTarget={(minutes) => setDailyTarget(studentId, minutes)}
         />
-        <StickerAlbum stickers={state.stickers} />
+        <BandWorkshop studentId={studentId} state={state} />
       </div>
 
       {result && <RewardModal result={result} onClose={() => setResult(null)} />}

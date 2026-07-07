@@ -81,9 +81,27 @@
 - [x] Task 29: Component polish — initials avatars in StudentPicker, media-type color on a left card edge (tokens instead of ad-hoc `red-100`/`amber-100`), lucide Folder icon instead of the 📁 emoji, no `drop-shadow` on headings, no `shadow-inner`, radius scale consolidated to 8/14/22 px, duplicated attendance-modal wrapper div removed, tuner status colors mapped to tokens. Verified: `npm run build` and `npm run lint` pass.
 - [ ] Task 30 (later): custom confirm dialog instead of `window.confirm`/`alert`, Escape + focus trap in modals, optional dark mode on the prepared tokens.
 
+## Phase 7: Gamification band builder
+
+- [x] Task 31: Extend the gamification model from flat stickers to band-ready musicians.
+  - Acceptance: Existing sticker collections still load; state includes equipped instruments; practice sessions grant one base note; helpers expose band progress and instrument equipping.
+  - Verification: Frontend build imports `src/gamification.js` without errors and existing state defaults are backward compatible.
+
+- [x] Task 32: Add the student-facing band workshop UI.
+  - Acceptance: Student dashboard shows bands of different sizes, missing/collected/equipped musician states, notes balance, and equip buttons.
+  - Verification: `GamificationPanel` renders the new workshop using current gamification state and refreshes after equipping.
+
+- [x] Task 33: Add a completed-band concert reward.
+  - Acceptance: Ready bands expose a play action; clicking it opens a concert overlay with the prepared musicians and a short browser-generated motif.
+  - Verification: The concert action is gated by band readiness and can be closed cleanly.
+
+- [x] Task 34: Update the practice reward modal copy for the new note economy.
+  - Acceptance: The post-practice celebration tells the child they earned a practice note and still explains duplicate bonus notes.
+  - Verification: Reward modal receives and displays note totals without breaking chest behavior.
+
 ## Final Validation
 
-- [ ] `npm run build` and `npm run server:check` pass.
+- [x] `npm run build` and `npm run server:check` pass.
 - [ ] Fresh deploy on a clean Oracle instance via `ops/deploy-vps.ps1` succeeds; `https://<domain>/api/health` returns ok.
 - [ ] Re-running the deploy script leaves the stack working (Task 8 regression check).
 - [ ] Login, student CRUD, material assignment, lesson notes, media playback, export/import round-trip, and backup+restore all verified on the VPS.

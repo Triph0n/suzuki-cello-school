@@ -107,3 +107,35 @@ The restore path should be tested before real student data is entered.
 6. Deploy to staging subdomain.
 7. Verify HTTPS, login, student creation, assignment, lesson note, and backup.
 8. Add real students only after restore has been tested.
+
+## Gamification Band Builder
+
+### Current Context
+
+Gamification currently lives in `src/gamification.js` and stores local state under `gamify_<studentId>`. The student dashboard renders `GamificationPanel`, which contains the timer, Cellino, balance week, sticker album, and reward modal. Collectibles are defined as `STICKERS`; duplicates become notes.
+
+### Approach
+
+Extend the existing local model rather than adding a parallel system:
+
+- Keep `STICKERS` as the existing collectible musician source for compatibility.
+- Add richer `MUSICIANS` metadata with role, instrument, instrument cost, and band participation.
+- Add `BANDS` definitions with 2-, 3-, 4-, and 6-player requirements.
+- Add `equippedInstruments` to the stored state, defaulting to `{}` for existing students.
+- Add one base note per completed practice session, with duplicate rewards continuing to add bonus notes.
+- Add an `equipMusician` helper that spends notes and marks a musician ready.
+- Replace the flat album view with a `BandWorkshop` component that presents progress, equip actions, and concert playback.
+
+### Files
+
+- `src/gamification.js`: data definitions, state migration defaults, equip helper, band progress selectors.
+- `src/components/gamification/GamificationPanel.jsx`: render the band workshop and hold concert modal state.
+- `src/components/gamification/BandWorkshop.jsx`: new band UI.
+- `src/components/gamification/RewardModal.jsx`: mention the base practice note reward.
+- `src/components/gamification/assets.js`: continue using sticker assets for musicians.
+
+### Validation
+
+- Run `npm run build`.
+- Run `npm run lint`.
+- Verify the code supports existing localStorage states without `equippedInstruments`.

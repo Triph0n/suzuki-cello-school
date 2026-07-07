@@ -1,14 +1,111 @@
 // Gamification core: practice sessions, streak (pearls), balance batons,
-// reward chest with collectible stickers. Local-only for now, mirroring the
-// localStorage pattern used in api.js. See gamification-design.md.
+// reward chest with collectible musicians, and band building. Local-only for
+// now, mirroring the localStorage pattern used in api.js.
 
-export const STICKERS = [
-  { key: "mouse-violin", name: "Mia the Violin Mouse", rarity: "common" },
-  { key: "rabbit-flute", name: "Rosie the Flute Rabbit", rarity: "common" },
-  { key: "hedgehog-drum", name: "Hugo the Drummer Hedgehog", rarity: "common" },
-  { key: "bear-bass", name: "Bruno the Bass Bear", rarity: "rare" },
-  { key: "owl-conductor", name: "Maestro Owl", rarity: "rare" },
-  { key: "fox-cello", name: "Felix the Cello Fox", rarity: "legendary" }
+export const MUSICIANS = [
+  {
+    key: "mouse-violin",
+    name: "Mia the Violin Mouse",
+    shortName: "Mia",
+    rarity: "common",
+    role: "Melody",
+    instrument: "Violin",
+    instrumentCost: 1
+  },
+  {
+    key: "rabbit-flute",
+    name: "Rosie the Flute Rabbit",
+    shortName: "Rosie",
+    rarity: "common",
+    role: "Air",
+    instrument: "Flute",
+    instrumentCost: 1
+  },
+  {
+    key: "hedgehog-drum",
+    name: "Hugo the Drummer Hedgehog",
+    shortName: "Hugo",
+    rarity: "common",
+    role: "Beat",
+    instrument: "Drum",
+    instrumentCost: 1
+  },
+  {
+    key: "bear-bass",
+    name: "Bruno the Bass Bear",
+    shortName: "Bruno",
+    rarity: "rare",
+    role: "Bass",
+    instrument: "Double bass",
+    instrumentCost: 2
+  },
+  {
+    key: "owl-conductor",
+    name: "Maestro Owl",
+    shortName: "Maestro",
+    rarity: "rare",
+    role: "Conductor",
+    instrument: "Golden baton",
+    instrumentCost: 2
+  },
+  {
+    key: "fox-cello",
+    name: "Felix the Cello Fox",
+    shortName: "Felix",
+    rarity: "legendary",
+    role: "Cello",
+    instrument: "Cello",
+    instrumentCost: 3
+  }
+];
+
+// Bands are ordered easiest-first: the starter duo needs only common
+// musicians, the legendary cello fox first appears in the quartet. Each
+// motif is the opening phrase of a tune the child already knows.
+export const BANDS = [
+  {
+    key: "twinkle-duo",
+    name: "Twinkle Duo",
+    sizeLabel: "2 players",
+    rehearsalHint: "Two little friends play the very first Twinkle.",
+    members: ["mouse-violin", "rabbit-flute"],
+    // Twinkle, Twinkle, Little Star: C C G G A A G
+    motif: [262, 262, 392, 392, 440, 440, 392]
+  },
+  {
+    key: "steady-trio",
+    name: "Steady Beat Trio",
+    sizeLabel: "3 players",
+    rehearsalHint: "Rhythm, bass, and conductor for steady practice days.",
+    members: ["hedgehog-drum", "bear-bass", "owl-conductor"],
+    // Lightly Row an octave down: G E E, F D D, C D E F G G G
+    motif: [196, 165, 165, 175, 147, 147, 131, 147, 165, 175, 196, 196, 196]
+  },
+  {
+    key: "melody-quartet",
+    name: "Melody Quartet",
+    sizeLabel: "4 players",
+    rehearsalHint: "A small concert group with melody, air, cello, and baton.",
+    members: ["mouse-violin", "rabbit-flute", "fox-cello", "owl-conductor"],
+    // Ode to Joy: E E F G G F E D C C D E E D D
+    motif: [330, 330, 349, 392, 392, 349, 330, 294, 262, 262, 294, 330, 330, 294, 294]
+  },
+  {
+    key: "animal-orchestra",
+    name: "Animal Orchestra",
+    sizeLabel: "6 players",
+    rehearsalHint: "The full first band from the whole collection.",
+    members: [
+      "mouse-violin",
+      "rabbit-flute",
+      "hedgehog-drum",
+      "bear-bass",
+      "owl-conductor",
+      "fox-cello"
+    ],
+    // Frère Jacques: C D E C, C D E C, E F G, E F G
+    motif: [262, 294, 330, 262, 262, 294, 330, 262, 330, 349, 392, 330, 349, 392]
+  }
 ];
 
 const RARITY_NOTES = { common: 1, rare: 3, legendary: 10 };
@@ -37,6 +134,7 @@ const defaultState = () => ({
   dailyTargetMin: 15,
   sessions: [],
   stickers: {},
+  equippedInstruments: {},
   notes: 0,
   freezes: 1,
   lastFreezeGrant: dateKey(),
@@ -47,7 +145,15 @@ export const getGamifyState = (studentId) => {
   if (!studentId) return defaultState();
   try {
     const raw = localStorage.getItem(storageKey(studentId));
-    return raw ? { ...defaultState(), ...JSON.parse(raw) } : defaultState();
+    if (!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    return {
+      ...defaultState(),
+      ...parsed,
+      stickers: parsed.stickers || {},
+      equippedInstruments: parsed.equippedInstruments || {},
+      chestsToday: parsed.chestsToday || defaultState().chestsToday
+    };
   } catch {
     return defaultState();
   }
@@ -118,9 +224,60 @@ const rollSticker = (goldenWeek) => {
   const roll = Math.random();
   let rarity = roll < 0.05 ? "legendary" : roll < 0.3 ? "rare" : "common";
   if (goldenWeek) rarity = rarity === "common" ? "rare" : rarity; // Golden week upgrade
-  const pool = STICKERS.filter((s) => s.rarity === rarity);
+  const pool = MUSICIANS.filter((s) => s.rarity === rarity);
   return pool[Math.floor(Math.random() * pool.length)];
 };
+
+export const getMusician = (key) => MUSICIANS.find((musician) => musician.key === key);
+
+export const isMusicianCollected = (state, key) => (state.stickers?.[key] || 0) > 0;
+
+export const isMusicianEquipped = (state, key) =>
+  Boolean(state.equippedInstruments?.[key]);
+
+export const equipMusician = (studentId, key) => {
+  const state = getGamifyState(studentId);
+  const musician = getMusician(key);
+
+  if (!musician) return { ok: false, reason: "missing_musician" };
+  if (!isMusicianCollected(state, key)) return { ok: false, reason: "not_collected" };
+  if (isMusicianEquipped(state, key)) return { ok: true, state };
+  if ((state.notes || 0) < musician.instrumentCost) {
+    return { ok: false, reason: "not_enough_notes" };
+  }
+
+  state.notes -= musician.instrumentCost;
+  state.equippedInstruments = {
+    ...(state.equippedInstruments || {}),
+    [key]: true
+  };
+  saveGamifyState(studentId, state);
+  return { ok: true, state };
+};
+
+export const getBandProgress = (state, band) => {
+  const members = band.members.map((key) => {
+    const musician = getMusician(key);
+    return {
+      ...musician,
+      collected: isMusicianCollected(state, key),
+      equipped: isMusicianEquipped(state, key),
+      count: state.stickers?.[key] || 0
+    };
+  });
+  const collectedCount = members.filter((member) => member.collected).length;
+  const readyCount = members.filter((member) => member.equipped).length;
+  return {
+    ...band,
+    members,
+    collectedCount,
+    readyCount,
+    complete: readyCount === members.length
+  };
+};
+
+export const getBandSummaries = (state) =>
+  BANDS.map((band) => getBandProgress(state, band));
 
 // Records a finished practice session and returns everything the celebration
 // screen needs. `seconds` is the measured practice time.
@@ -134,6 +291,7 @@ export const finishSession = (studentId, seconds) => {
   const today = dateKey();
   const batonBefore = hasBaton(state, today);
   state.sessions.push({ date: today, minutes, at: new Date().toISOString() });
+  state.notes = (state.notes || 0) + 1;
 
   // Earn a streak freeze ("magic rosin") every two weeks of use.
   const graceAge =
@@ -174,7 +332,8 @@ export const finishSession = (studentId, seconds) => {
     goldenWeek: isGoldenWeek(state),
     sticker,
     duplicate,
-    notes: state.notes
+    notes: state.notes,
+    practiceNote: true
   };
 };
 

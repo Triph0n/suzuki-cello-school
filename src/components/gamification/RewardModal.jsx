@@ -85,6 +85,17 @@ export default function RewardModal({ result, onClose }) {
           </p>
         )}
 
+        {result.practiceNote && (
+          <div className="bg-tertiary-container/70 rounded-2xl p-3 mb-4 text-left">
+            <p className="text-sm font-bold text-on-tertiary-container">
+              +1 practice note for your bands
+            </p>
+            <p className="text-xs text-on-surface-variant mt-1">
+              Use notes to equip collected players with instruments. You have {result.notes} now.
+            </p>
+          </div>
+        )}
+
         {result.sticker ? (
           !chestOpened ? (
             <button onClick={() => setChestOpened(true)} className="group cursor-pointer bg-transparent border-none" title="Open the chest!">
@@ -113,7 +124,7 @@ export default function RewardModal({ result, onClose }) {
                 result.sticker.rarity === "rare" ? "text-amber-600" : "text-on-surface-variant"
               }`}>
                 {RARITY_LABEL[result.sticker.rarity]}
-                {result.duplicate && <span className="text-on-surface-variant font-medium"> — duplicate → 🎵 notes!</span>}
+                {result.duplicate && <span className="text-on-surface-variant font-medium"> — duplicate bonus notes!</span>}
               </p>
             </div>
           )
