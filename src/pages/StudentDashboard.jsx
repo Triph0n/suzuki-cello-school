@@ -1,8 +1,9 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import { subscribeToStudents, getStudents } from "../api";
+import { subscribeToStudents, getStudents, importStudent } from "../api";
 import { Play, X, Headphones, FileText } from "lucide-react";
 import { allMediaFiles } from "../mediaConfig";
+import GamificationPanel from "../components/gamification/GamificationPanel";
 
 export default function StudentDashboard() {
   const { id } = useParams();
@@ -39,6 +40,24 @@ export default function StudentDashboard() {
     let isMounted = true;
     let unsubscribe;
 
+    // Check for encoded student data in the URL
+    const searchParams = new URLSearchParams(window.location.search);
+    const dParam = searchParams.get('d');
+    if (dParam) {
+      try {
+        const decoded = decodeURIComponent(escape(atob(dParam)));
+        const imported = JSON.parse(decoded);
+        if (imported && imported.id === id) {
+          importStudent(imported);
+          // Clean up URL parameters
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, newUrl);
+        }
+      } catch (e) {
+        console.error("Failed to parse shared student data:", e);
+      }
+    }
+
     const fallbackTimeout = setTimeout(() => {
       if (isMounted) {
         setStudent(getStudents().find(s => s.id === id));
@@ -55,11 +74,15 @@ export default function StudentDashboard() {
           setLoading(false);
         }
       });
-    } catch (e) {
+    } catch {
       if (isMounted) {
-        clearTimeout(fallbackTimeout);
-        setStudent(getStudents().find(s => s.id === id));
-        setLoading(false);
+        setTimeout(() => {
+          if (isMounted) {
+            clearTimeout(fallbackTimeout);
+            setStudent(getStudents().find(s => s.id === id));
+            setLoading(false);
+          }
+        }, 0);
       }
     }
 
@@ -79,9 +102,11 @@ export default function StudentDashboard() {
         Welcome, {student.name}!
       </h1>
       
-      <p className="text-on-surface-variant text-lg mb-10 font-medium">
+      <p className="text-on-surface-variant text-lg mb-8 font-medium">
         Here are your currently assigned lessons. Keep practicing!
       </p>
+
+      <GamificationPanel studentId={student.id} mediaActive={!!playingVideo} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {student.assignedVideos && student.assignedVideos.length > 0 ? (

@@ -1,7 +1,14 @@
 import manifest from './mediaManifest.json';
 
-// We now use the Cloudflare Pages Function endpoint instead of the direct R2 URL
-const R2_BASE_URL = "/api/media";
+const isLocalRuntime =
+  import.meta.env.DEV ||
+  (typeof window !== "undefined" &&
+    ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname));
+
+// Local PC runs should play the bundled files directly from disk via Vite.
+// Cloudflare Pages keeps using the Pages Function endpoint backed by R2.
+const MEDIA_BASE_URL = import.meta.env.VITE_MEDIA_BASE_URL || (isLocalRuntime ? "/src" : "/api/media");
+const MEDIA_STORAGE_MODE = import.meta.env.VITE_MEDIA_STORAGE_MODE || (isLocalRuntime ? "local" : "r2");
 
 // R2 bucket uses 'Video/' (capital V) but manifest has lowercase 'video/'
 // This map corrects the casing for each top-level folder
@@ -16,12 +23,15 @@ function mapToR2(fileObj) {
     const cleanPath = val.replace(/^\.\//, ''); // remove leading ./
     const parts = cleanPath.split('/');
     // Correct top-level folder casing to match R2 bucket keys
-    if (parts[0] && R2_FOLDER_MAP[parts[0]]) {
+    if (MEDIA_STORAGE_MODE === "r2" && parts[0] && R2_FOLDER_MAP[parts[0]]) {
       parts[0] = R2_FOLDER_MAP[parts[0]];
     }
     // Encode each segment to handle spaces and special characters
-    const encodedParts = parts.map(part => encodeURIComponent(part));
-    mapped[key] = R2_BASE_URL + '/' + encodedParts.join('/');
+    const encodedParts = parts.map((part) => {
+      const encoded = encodeURIComponent(part);
+      return MEDIA_STORAGE_MODE === "local" ? encoded.replace(/%2B/gi, "+") : encoded;
+    });
+    mapped[key] = MEDIA_BASE_URL + '/' + encodedParts.join('/');
   }
   return mapped;
 }
@@ -48,7 +58,7 @@ export function formatMediaName(path) {
   let name = filename.replace(/\.(mp4|m4v|pdf|avi|mov|mp3|wav)$/i, '');
   try {
     name = decodeURIComponent(name);
-  } catch (e) {
+  } catch {
     // Ignore decoding errors
   }
   name = name.replace(/^Exercise\s+(No\.?\s*)?/i, '');

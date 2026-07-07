@@ -23,7 +23,10 @@ const Layout = ({ children }) => {
 
   // Close sidebar on route change mapping
   useEffect(() => {
-    setIsSidebarOpen(false);
+    const timer = setTimeout(() => {
+      setIsSidebarOpen(false);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [location.pathname]);
 
   return (
