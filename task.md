@@ -73,6 +73,14 @@
 - [ ] Task 24: Move `BACKUP_DIR` outside the deploy directory, schedule `ops/backup-postgres.sh` via cron, and sync dumps off-VPS (e.g. rclone to Cloudflare R2). Test a full restore before entering real student data.
 - [ ] Task 25: Base OS hardening: unattended upgrades (`unattended-upgrades` on Ubuntu / `dnf-automatic` on Oracle Linux), SSH key-only auth, fail2ban on sshd.
 
+## Phase 6: Design 2.0 (visual pass, see design review artifact)
+
+- [x] Task 26: Replace the token palette in `src/index.css` — 3 paper surfaces + one varnish accent + named media colors (madder/rosin/lake); define the missing `surface-hover`, `error`/`on-error`, and `surface-container-lowest` tokens that JSX already references; remove the watercolor/grain utilities and the external `lh3.googleusercontent.com` texture URL.
+- [x] Task 27: Self-host fonts — swap Noto Serif for Fraunces (brand match with suzukicello.ch) plus Plus Jakarta Sans via @fontsource-variable; delete both Google Fonts links and the unused Material Symbols link from `index.html` (restores the offline goal).
+- [x] Task 28: Clean the background — remove the three stacked fixed layers (photo/watercolor/grain) in `src/App.jsx`; flat paper ground.
+- [x] Task 29: Component polish — initials avatars in StudentPicker, media-type color on a left card edge (tokens instead of ad-hoc `red-100`/`amber-100`), lucide Folder icon instead of the 📁 emoji, no `drop-shadow` on headings, no `shadow-inner`, radius scale consolidated to 8/14/22 px, duplicated attendance-modal wrapper div removed, tuner status colors mapped to tokens. Verified: `npm run build` and `npm run lint` pass.
+- [ ] Task 30 (later): custom confirm dialog instead of `window.confirm`/`alert`, Escape + focus trap in modals, optional dark mode on the prepared tokens.
+
 ## Final Validation
 
 - [ ] `npm run build` and `npm run server:check` pass.

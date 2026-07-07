@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Play, FileText, Headphones, Book } from "lucide-react";
+import { Play, FileText, Headphones, Book, Folder } from "lucide-react";
 import { formatMediaName } from "../mediaConfig";
 
 export default function VideoLibrary({ title, mediaSrcMap }) {
@@ -85,13 +85,17 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
       {items.map((file, idx) => (
         <div 
           key={idx} 
-          className="bg-surface-container-low hover:bg-surface-container border border-outline-variant/30 hover:border-primary/50 shadow-sm hover:shadow-lg rounded-3xl p-6 flex items-center gap-4 cursor-pointer transition-all duration-300 transform hover:-translate-y-1 group"
+          className={`bg-surface-container-low hover:bg-surface-container border border-outline-variant/30 hover:border-primary/50 border-l-4 shadow-sm hover:shadow-lg rounded-3xl p-6 flex items-center gap-4 cursor-pointer transition-all duration-300 transform hover:-translate-y-1 group ${
+            file.type === 'book' ? "border-l-madder" :
+            file.type === 'audio' ? "border-l-rosin" :
+            "border-l-lake"
+          }`}
           onClick={() => setSelectedMedia(file)}
         >
-          <div className={`w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center shadow-inner transition-transform duration-300 group-hover:scale-110 ${
-            file.type === 'book' ? "bg-red-100 text-red-600" : 
-            file.type === 'audio' ? "bg-amber-100 text-amber-600" : 
-            "bg-secondary-container text-tertiary"
+          <div className={`w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 ${
+            file.type === 'book' ? "bg-madder-wash text-madder" :
+            file.type === 'audio' ? "bg-rosin-wash text-rosin" :
+            "bg-lake-wash text-lake"
           }`}>
             {file.type === 'book' ? <FileText size={28} /> : file.type === 'audio' ? <Headphones size={28} /> : <Play size={28} className="ml-1" />}
           </div>
@@ -129,13 +133,13 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
 
   return (
     <div className="max-w-7xl mx-auto py-8">
-      <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary mb-10 drop-shadow-sm">
+      <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary mb-10">
         {title} 
       </h1>
 
       {selectedMedia ? (
         <div className="fixed inset-0 sm:p-6 md:p-10 lg:p-12 z-[60] bg-background/95 backdrop-blur-md flex flex-col items-center justify-center">
-          <div className="w-full max-w-7xl mx-auto flex flex-col h-full bg-surface-container-low border border-outline-variant/30 rounded-[2rem] shadow-2xl overflow-hidden p-2 sm:p-4">
+          <div className="w-full max-w-7xl mx-auto flex flex-col h-full bg-surface-container-low border border-outline-variant/30 rounded-3xl shadow-2xl overflow-hidden p-2 sm:p-4">
             
             <div className="flex justify-between items-center px-2 pb-4 mb-2 border-b border-outline-variant/20 shrink-0 gap-4">
                <h2 className="font-headline text-lg sm:text-xl font-bold text-on-background break-words" title={selectedMedia.name}>{selectedMedia.name}</h2>
@@ -167,8 +171,8 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
                    <iframe ref={iframeRef} src={selectedMedia.url} className="w-full h-full border-none bg-white" title={selectedMedia.name} />
                ) : selectedMedia.type === 'audio' ? (
                   <div className="w-full h-full flex flex-col items-center justify-center gap-8 bg-surface-container">
-                     <div className="p-8 bg-surface-hover rounded-full shadow-inner animate-pulse">
-                       <Headphones size={64} className="text-amber-500" />
+                     <div className="p-8 bg-rosin-wash rounded-full animate-pulse">
+                       <Headphones size={64} className="text-rosin" />
                      </div>
                      <audio ref={audioRef} onLoadedData={handleAudioLoad} src={selectedMedia.url} controls autoPlay className="w-full max-w-md shadow-md rounded-full" />
                      <div className="flex items-center gap-4 bg-surface-container-low p-4 rounded-xl border border-outline-variant/30 shadow-sm">
@@ -205,7 +209,7 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
               {Object.entries(groupedBooks).sort(sortFolders).map(([folder, fItems]) => (
                 <div key={folder} className="mb-8">
                   <h3 className={`font-headline text-xl text-primary font-bold flex items-center gap-2 mb-6 ${folder !== "Other" ? "mt-4" : "mt-0"}`}>
-                    <span className="text-2xl">📁</span> {folder}
+                    <Folder size={20} className="text-tertiary" /> {folder}
                   </h3>
                   {renderGrid(sortFiles(fItems))}
                 </div>
@@ -222,7 +226,7 @@ export default function VideoLibrary({ title, mediaSrcMap }) {
               {Object.entries(groupedMedia).sort(sortFolders).map(([folder, fItems]) => (
                 <div key={folder} className="mb-8">
                   <h3 className={`font-headline text-xl text-primary font-bold flex items-center gap-2 mb-6 ${folder !== "Other" ? "mt-4" : "mt-0"}`}>
-                    <span className="text-2xl">📁</span> {folder}
+                    <Folder size={20} className="text-tertiary" /> {folder}
                   </h3>
                   {renderGrid(sortFiles(fItems))}
                 </div>

@@ -294,7 +294,7 @@ export default function TeacherDashboard() {
               <ChevronLeft size={24} />
             </button>
           )}
-          <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary drop-shadow-sm">
+          <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary">
             {selectedStudentId ? selectedStudent?.name : "Teacher Dashboard"}
           </h1>
         </div>
@@ -374,7 +374,7 @@ export default function TeacherDashboard() {
                           </button>
                           <button 
                             onClick={() => handleRemoveAttendance(record.id)}
-                            className="p-1.5 text-on-surface-variant hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-1.5 text-on-surface-variant hover:text-error hover:bg-madder-wash rounded-lg transition-colors"
                             title="Delete"
                           >
                             <Trash2 size={14} />
@@ -426,7 +426,7 @@ export default function TeacherDashboard() {
                         </div>
                         <button 
                           onClick={() => handleRemoveVideo(selectedStudentId, idx)}
-                          className="p-2 text-on-surface-variant hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-on-surface-variant hover:text-error hover:bg-madder-wash rounded-lg transition-colors"
                           title="Remove task"
                         >
                           <Trash2 size={16} />
@@ -467,7 +467,7 @@ export default function TeacherDashboard() {
                     </div>
                     <button 
                       onClick={(e) => handleRemoveStudent(student.id, e)}
-                      className="p-2 text-on-surface-variant hover:text-red-600 rounded-full transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                      className="p-2 text-on-surface-variant hover:text-error rounded-full transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
                       title="Remove student"
                     >
                       <Trash2 size={18} />
@@ -506,7 +506,7 @@ export default function TeacherDashboard() {
                       </div>
                       <button 
                         onClick={() => handleRemoveMaterial(mat.id)}
-                        className="p-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-colors shadow-sm shrink-0 ml-4"
+                        className="p-2 bg-madder-wash hover:bg-madder-wash/70 text-error rounded-lg transition-colors shadow-sm shrink-0 ml-4"
                         title="Remove material"
                       >
                         <Trash2 size={18} />
@@ -565,12 +565,12 @@ export default function TeacherDashboard() {
               {/* Reset Button */}
               <button 
                 onClick={handleResetDatabase}
-                className="flex items-center justify-center gap-3 px-5 py-4 bg-red-100/50 hover:bg-red-100 text-red-700 rounded-2xl transition-all duration-300 font-bold shadow-sm hover:shadow-md border border-red-200 hover:-translate-y-0.5 cursor-pointer"
+                className="flex items-center justify-center gap-3 px-5 py-4 bg-madder-wash/50 hover:bg-madder-wash text-error rounded-2xl transition-all duration-300 font-bold shadow-sm hover:shadow-md border border-madder-wash hover:-translate-y-0.5 cursor-pointer"
               >
-                <RotateCcw size={20} className="shrink-0 text-red-600" />
+                <RotateCcw size={20} className="shrink-0 text-error" />
                 <div className="text-left min-w-0">
                   <div className="text-sm font-semibold truncate">Resetovat databázi</div>
-                  <div className="text-[10px] font-normal text-red-500/80 truncate">Smazat všechna data</div>
+                  <div className="text-[10px] font-normal text-error/80 truncate">Smazat všechna data</div>
                 </div>
               </button>
             </div>
@@ -582,8 +582,7 @@ export default function TeacherDashboard() {
       {attendanceModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setAttendanceModalOpen(false)} />
-          <div className="bg-surface-container-low border border-outline-variant/30 rounded-[2rem] w-full max-w-md max-h-[90vh] shadow-2xl z-10 overflow-hidden transform transition-all flex flex-col">
-          <div className="bg-surface-container-low border border-outline-variant/30 rounded-[2rem] w-full max-w-md max-h-[90vh] shadow-2xl z-10 overflow-hidden transform transition-all flex flex-col">
+          <div className="bg-surface-container-low border border-outline-variant/30 rounded-3xl w-full max-w-md max-h-[90vh] shadow-2xl z-10 overflow-hidden transform transition-all flex flex-col">
             <form onSubmit={handleSaveAttendance} className="flex flex-col h-full overflow-hidden">
               <div className="flex justify-between items-center p-4 sm:p-6 border-b border-outline-variant/10 bg-surface-container shrink-0">
                 <h2 className="font-headline text-xl font-medium text-on-background flex items-center gap-2">
@@ -683,7 +682,6 @@ export default function TeacherDashboard() {
               </div>
             </form>
           </div>
-          </div>
         </div>
       )}
 
@@ -691,7 +689,7 @@ export default function TeacherDashboard() {
       {assignModalStudentId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-hidden">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setAssignModalStudentId(null)} />
-          <div className="bg-surface-container-low border border-outline-variant/30 rounded-[2rem] w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl z-10 overflow-hidden transform transition-all">
+          <div className="bg-surface-container-low border border-outline-variant/30 rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl z-10 overflow-hidden transform transition-all">
             
             {/* Modal Header */}
             <div className="flex justify-between items-center p-6 border-b border-outline-variant/20 bg-surface-container shrink-0">
@@ -748,7 +746,7 @@ export default function TeacherDashboard() {
       {addStudentModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setAddStudentModalOpen(false)} />
-          <div className="bg-surface-container-low border border-outline-variant/30 rounded-[2rem] w-full max-w-md shadow-2xl z-10 overflow-hidden transform transition-all flex flex-col">
+          <div className="bg-surface-container-low border border-outline-variant/30 rounded-3xl w-full max-w-md shadow-2xl z-10 overflow-hidden transform transition-all flex flex-col">
             <div className="flex justify-between items-center p-6 border-b border-outline-variant/20 bg-surface-container">
               <h2 className="font-headline text-2xl font-bold text-on-background flex items-center gap-2">
                 <UserPlus size={24} className="text-tertiary" />
@@ -795,7 +793,7 @@ export default function TeacherDashboard() {
       {addMaterialModalOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setAddMaterialModalOpen(false)} />
-          <div className="bg-surface-container-low border border-outline-variant/30 rounded-[2rem] w-full max-w-md shadow-2xl z-10 overflow-hidden transform transition-all flex flex-col">
+          <div className="bg-surface-container-low border border-outline-variant/30 rounded-3xl w-full max-w-md shadow-2xl z-10 overflow-hidden transform transition-all flex flex-col">
             <div className="flex justify-between items-center p-6 border-b border-outline-variant/20 bg-surface-container">
               <h2 className="font-headline text-2xl font-bold text-on-background flex items-center gap-2">
                 <Book size={24} className="text-tertiary" />

@@ -450,7 +450,7 @@ const TunerMetronome = () => {
           <div className="absolute right-5 top-11 text-[10px] font-semibold text-on-surface-variant">HIGH</div>
           <div
             className={`absolute left-1/2 bottom-8 h-16 w-1 origin-bottom rounded-full transition-transform duration-150 ${
-              isInTune && detectedFrequency ? 'bg-green-500' : 'bg-red-500'
+              isInTune && detectedFrequency ? 'bg-secondary' : 'bg-error'
             }`}
             style={{ transform: `translateX(-50%) rotate(${needleRotation}deg)` }}
           />
@@ -459,7 +459,7 @@ const TunerMetronome = () => {
             <span className="font-mono text-on-surface-variant">
               {detectedFrequency ? `${detectedFrequency.toFixed(1)} Hz` : '-- Hz'}
             </span>
-            <span className={`font-bold ${isInTune && detectedFrequency ? 'text-green-500' : 'text-red-500'}`}>
+            <span className={`font-bold ${isInTune && detectedFrequency ? 'text-secondary' : 'text-error'}`}>
               {pitchLabel}
             </span>
             <span className="font-mono text-on-surface-variant">

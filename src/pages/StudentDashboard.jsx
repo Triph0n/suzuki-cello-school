@@ -97,7 +97,7 @@ export default function StudentDashboard() {
 
   return (
     <div className="max-w-6xl mx-auto py-8">
-      <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary mb-6 drop-shadow-sm">
+      <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary mb-6">
         Welcome, {student.name}!
       </h1>
       
@@ -108,12 +108,16 @@ export default function StudentDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {student.assignedVideos && student.assignedVideos.length > 0 ? (
           student.assignedVideos.map((video, index) => (
-            <div key={index} className="group bg-surface-container-low border border-outline-variant/30 hover:border-primary/50 p-6 flex flex-col gap-4 rounded-3xl transition-all shadow-sm hover:shadow-md">
+            <div key={index} className={`group bg-surface-container-low border border-outline-variant/30 hover:border-primary/50 border-l-4 p-6 flex flex-col gap-4 rounded-3xl transition-all shadow-sm hover:shadow-md ${
+              video.type === 'book' ? "border-l-madder" :
+              video.type === 'audio' ? "border-l-rosin" :
+              "border-l-lake"
+            }`}>
               <div className="flex items-center gap-4">
-                <div className={`w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center shadow-inner transition-transform duration-300 group-hover:scale-110 ${
-                  video.type === 'book' ? "bg-red-100 text-red-600" : 
-                  video.type === 'audio' ? "bg-amber-100 text-amber-600" : 
-                  "bg-secondary-container text-tertiary"
+                <div className={`w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 ${
+                  video.type === 'book' ? "bg-madder-wash text-madder" :
+                  video.type === 'audio' ? "bg-rosin-wash text-rosin" :
+                  "bg-lake-wash text-lake"
                 }`}>
                   {video.type === 'book' ? <FileText size={28} /> : video.type === 'audio' ? <Headphones size={28} /> : <Play size={28} className="ml-1" />}
                 </div>
@@ -147,7 +151,7 @@ export default function StudentDashboard() {
          const type = getMediaType(playingVideo.videoId);      // Extract media type from filename
          return (
            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-6" onClick={() => setPlayingVideo(null)}>
-             <div className="bg-surface-container-low border border-outline-variant/30 rounded-[2rem] shadow-2xl w-full max-w-7xl h-full max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+             <div className="bg-surface-container-low border border-outline-variant/30 rounded-3xl shadow-2xl w-full max-w-7xl h-full max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
                <div className="flex justify-between items-center p-4 sm:p-6 border-b border-outline-variant/20 bg-surface-container shrink-0">
                  <h2 className="font-headline text-xl sm:text-2xl font-bold text-on-background break-words">{playingVideo.title}</h2>
                  <div className="flex items-center gap-2">
@@ -180,8 +184,8 @@ export default function StudentDashboard() {
                    <iframe ref={iframeRef} src={videoUrl} className="w-full h-full border-none rounded-xl bg-white shadow-md" title={playingVideo.title} />
                  ) : type === 'audio' ? (
                    <div className="w-full h-full flex flex-col items-center justify-center gap-8 bg-surface-container rounded-2xl">
-                       <div className="p-8 bg-surface-variant rounded-full shadow-inner animate-pulse">
-                         <Headphones size={64} className="text-amber-500" />
+                       <div className="p-8 bg-rosin-wash rounded-full animate-pulse">
+                         <Headphones size={64} className="text-rosin" />
                        </div>
                        <audio ref={audioRef} onLoadedData={handleAudioLoad} src={videoUrl} controls autoPlay className="w-full max-w-md shadow-md rounded-full" />
                        <div className="flex items-center gap-4 bg-surface-container-low p-4 rounded-xl border border-outline-variant/30 shadow-sm mt-4">

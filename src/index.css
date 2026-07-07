@@ -1,67 +1,69 @@
 @import "tailwindcss";
 
+/* Design 2.0 — paleta odvozená ze světa cella:
+   papír = smrkové víko, akcent = lak, média = mořena / kalafuna / jezerní.
+   Názvy tokenů zůstávají (Material 3 styl), aby se nemusel přepisovat JSX. */
 @theme {
-  --color-background: #fcf6ed;
-  --color-surface: #fcf6ed;
-  --color-surface-bright: #fcf6ed;
-  --color-surface-dim: #dad4c8;
-  --color-surface-container: #eee7dd;
-  --color-surface-container-low: #f6f0e6;
-  --color-surface-container-high: #e8e2d7;
-  --color-surface-container-highest: #e2dcd1;
-  --color-surface-variant: #e2dcd1;
+  --color-background: #faf6ef;
+  --color-surface: #faf6ef;
+  --color-surface-bright: #ffffff;
+  --color-surface-dim: #e6ddcb;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #ffffff;
+  --color-surface-container: #f2ecdf;
+  --color-surface-container-high: #ece5d5;
+  --color-surface-container-highest: #e6ddcb;
+  --color-surface-variant: #f2ecdf;
+  --color-surface-hover: #ece5d5;
 
-  --color-primary: #994100;
-  --color-primary-dim: #863800;
-  --color-primary-container: #ff8439;
-  --color-on-primary-container: #471a00;
-  --color-on-primary: #fff0e9;
-  --color-primary-fixed-dim: #ee772d;
-  
-  --color-secondary: #52603b;
-  --color-secondary-container: #d7e9b9;
-  --color-on-secondary-container: #485732;
-  --color-on-secondary: #e8f9c9;
-  --color-secondary-fixed-dim: #c9dbac;
+  --color-primary: #b4552d;
+  --color-primary-dim: #93441f;
+  --color-primary-container: #f6e3d7;
+  --color-on-primary-container: #6d3115;
+  --color-on-primary: #faf6ef;
+  --color-primary-fixed-dim: #d97a4e;
 
-  --color-tertiary: #186474;
-  --color-tertiary-container: #a7eafd;
-  --color-on-tertiary-container: #005868;
-  --color-on-tertiary-fixed-variant: #156273;
-  --color-on-tertiary: #def7ff;
+  --color-secondary: #5a6a3c;
+  --color-secondary-container: #e5ead2;
+  --color-on-secondary-container: #46542c;
+  --color-on-secondary: #f4f7e8;
+  --color-secondary-fixed-dim: #cdd8ae;
 
-  --color-outline-variant: #b1aca4;
-  --color-on-surface-variant: #5e5b54;
-  --color-on-background: #312e29;
+  --color-tertiary: #1d6a72;
+  --color-tertiary-container: #d9ecec;
+  --color-on-tertiary-container: #14525a;
+  --color-on-tertiary-fixed-variant: #1d6a72;
+  --color-on-tertiary: #e9f6f6;
 
-  --font-headline: "Noto Serif", serif;
-  --font-display: "Noto Serif", serif;
-  --font-body: "Plus Jakarta Sans", sans-serif;
-  --font-label: "Plus Jakarta Sans", sans-serif;
+  --color-error: #a03333;
+  --color-on-error: #fdf1ee;
 
-  --radius-xl: 3rem;
-}
+  /* Sémantika typů médií: noty / nahrávky / video */
+  --color-madder: #a03333;
+  --color-madder-wash: #f4dfd8;
+  --color-rosin: #a06a00;
+  --color-rosin-wash: #f3e7c8;
+  --color-lake: #1d6a72;
+  --color-lake-wash: #d9ecec;
 
-@layer utilities {
-  .watercolor-bg {
-    background-image: radial-gradient(circle at 20% 30%, var(--color-surface-container-low) 0%, transparent 40%), 
-                      radial-gradient(circle at 80% 70%, var(--color-surface-container) 0%, transparent 40%);
-  }
+  --color-outline-variant: #ddd4c2;
+  --color-on-surface: #2b2723;
+  --color-on-surface-variant: #6b6258;
+  --color-on-background: #2b2723;
 
-  .grainy-texture {
-    position: relative;
-  }
-  .grainy-texture::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    opacity: 0.03;
-    pointer-events: none;
-    background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAYDvHT6ag77inn7KLqn9c5afBOsxCSnE6bFKfu1ni1n4pDQpHBxGL3SAX0B6Un7-z_IqZOm08-8O44SN1TSm0o_a5DRA82WSAWlCT40TsuuxJENs1TFQ-u27VA0v_IbbURyTweWMEwqFUY6fHIxczxoIZ-0olsEGFkVKwDxIHVbvmCtNLJWK18AlEoMkCaiHC4s82pYVb0i4J379OMCxyXLFW_pQl9HTxK5EO0_w4UGSnkJxN5X5E5_AO7KOU4EDX5D-VVkE1GPZo");
-  }
+  --font-headline: "Fraunces Variable", "Iowan Old Style", Georgia, serif;
+  --font-display: "Fraunces Variable", "Iowan Old Style", Georgia, serif;
+  --font-body: "Plus Jakarta Sans Variable", "Segoe UI", system-ui, sans-serif;
+  --font-label: "Plus Jakarta Sans Variable", "Segoe UI", system-ui, sans-serif;
+
+  /* Jednotná škála tvarů: 8 / 14 / 22 px */
+  --radius-lg: 8px;
+  --radius-xl: 14px;
+  --radius-2xl: 14px;
+  --radius-3xl: 22px;
 }
 
 body {
-  min-height: max(884px, 100dvh);
+  min-height: 100dvh;
+  background-color: var(--color-background);
 }
-

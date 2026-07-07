@@ -30,14 +30,7 @@ const Layout = ({ children }) => {
   }, [location.pathname]);
 
   return (
-    <div className="relative min-h-screen flex flex-col md:flex-row text-on-background font-body">
-      {/* Background Layers */}
-      <div className="fixed inset-0 z-[-3] bg-background pointer-events-none" />
-      <div 
-        className="fixed inset-0 z-[-2] bg-cover bg-center bg-no-repeat opacity-15 pointer-events-none" 
-        style={{ backgroundImage: `url('/cello-bg.jpg')` }}
-      />
-      <div className="fixed inset-0 z-[-1] watercolor-bg grainy-texture opacity-90 pointer-events-none" />
+    <div className="relative min-h-screen flex flex-col md:flex-row bg-background text-on-background font-body">
       {/* Mobile Top Bar */}
       <div className="md:hidden flex justify-between items-center p-4 bg-surface-container-low shadow-sm z-50 sticky top-0">
         <h1 className="font-headline text-xl font-bold text-primary">
