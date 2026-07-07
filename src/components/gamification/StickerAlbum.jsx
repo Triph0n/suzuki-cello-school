@@ -3,7 +3,7 @@ import { stickerSrc } from "./assets";
 
 const RARITY_STYLE = {
   common: "border-outline-variant/40",
-  rare: "border-amber-400/70",
+  rare: "border-rosin/60",
   legendary: "border-primary/70 shadow-md"
 };
 
@@ -35,7 +35,7 @@ export default function StickerAlbum({ stickers }) {
                 src={stickerSrc(sticker.key)}
                 alt={count > 0 ? sticker.name : "Locked sticker"}
                 className={`w-full h-full object-contain ${
-                  count > 0 ? "" : "grayscale opacity-25"
+                  count > 0 ? "" : "grayscale opacity-35"
                 }`}
               />
               {count === 0 && (
@@ -44,7 +44,7 @@ export default function StickerAlbum({ stickers }) {
                 </span>
               )}
               {count > 1 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-primary text-on-primary text-[10px] font-bold rounded-full px-1.5 py-0.5 shadow-sm">
+                <span className="absolute -top-1.5 -right-1.5 bg-primary text-on-primary text-xs font-bold rounded-full px-1.5 py-0.5 shadow-sm">
                   ×{count}
                 </span>
               )}

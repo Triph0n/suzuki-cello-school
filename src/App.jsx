@@ -1,16 +1,22 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Routes, Route, Link, useLocation, useNavigate } from "react-router-dom";
 import { Music, CheckSquare, Settings, Users, Menu, X, Book, LogOut } from "lucide-react";
-import StudentPicker from "./pages/StudentPicker";
-import StudentDashboard from "./pages/StudentDashboard";
-import TeacherDashboard from "./pages/TeacherDashboard";
-import VideoLibrary from "./pages/VideoLibrary";
-import TunerMetronome from "./components/TunerMetronome";
 import RequireTeacher from "./components/RequireTeacher";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { logout, usesServerBackend } from "./api";
 
-// Load files using Vite's glob import
-import { combinedPreTwinkleFiles, allCheckpointsFiles, allJoggersFiles, allBooksFiles, allSuzukiMp3OfficialFiles } from "./mediaConfig";
+// Route-level code splitting: the student picker is all a pupil needs at
+// start; the teacher dashboard, libraries and the Web Audio tuner load on
+// demand (they also pull in the large media manifest).
+const StudentPicker = lazy(() => import("./pages/StudentPicker"));
+const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
+const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
+const VideoLibrary = lazy(() => import("./pages/VideoLibrary"));
+const TunerMetronome = lazy(() => import("./components/TunerMetronome"));
+
+const PageLoading = () => (
+  <div className="text-on-surface-variant text-center mt-12 text-lg">Loading...</div>
+);
 
 const Layout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -48,16 +54,17 @@ const Layout = ({ children }) => {
         <h1 className="font-headline text-xl font-bold text-primary">
           Suzuki Cello
         </h1>
-        <button className="p-2 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-colors" onClick={() => setIsSidebarOpen(true)}>
+        <button className="p-2 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-colors" onClick={() => setIsSidebarOpen(true)} aria-label="Open menu">
           <Menu size={24} />
         </button>
       </div>
 
       {/* Overlay for mobile sidebar */}
       {isSidebarOpen && (
-        <div 
+        <div
           onClick={() => setIsSidebarOpen(false)}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden"
+          className="fixed inset-0 bg-scrim/50 backdrop-blur-sm z-40 md:hidden"
+          aria-hidden="true"
         />
       )}
 
@@ -69,9 +76,10 @@ const Layout = ({ children }) => {
             Suzuki Cello
           </h1>
           {/* Close button for mobile inside sidebar */}
-          <button 
+          <button
             className="md:hidden p-2 text-on-surface-variant hover:bg-surface-variant rounded-lg transition-colors"
             onClick={() => setIsSidebarOpen(false)}
+            aria-label="Close menu"
           >
             <X size={24} />
           </button>
@@ -91,7 +99,9 @@ const Layout = ({ children }) => {
         </div>
 
         <div className="mt-auto">
-          <TunerMetronome />
+          <Suspense fallback={null}>
+            <TunerMetronome />
+          </Suspense>
         </div>
 
         <div className="mt-8 pt-4 border-t border-outline-variant/30">
@@ -120,8 +130,8 @@ const Layout = ({ children }) => {
 
 const NavLink = ({ to, icon, label }) => {
   return (
-    <Link 
-      to={to} 
+    <Link
+      to={to}
       className="flex items-center gap-4 px-4 py-3 rounded-2xl text-on-surface-variant hover:text-on-secondary-container hover:bg-secondary-container transition-all duration-200 group"
     >
       <div className="text-tertiary group-hover:text-primary transition-colors">
@@ -135,16 +145,20 @@ const NavLink = ({ to, icon, label }) => {
 function App() {
   return (
     <Layout>
-      <Routes>
-        <Route path="/" element={<StudentPicker />} />
-        <Route path="/student/:id" element={<StudentDashboard />} />
-        <Route path="/teacher" element={<RequireTeacher><TeacherDashboard /></RequireTeacher>} />
-        <Route path="/books" element={<VideoLibrary title="Books Library" mediaSrcMap={allBooksFiles} />} />
-        <Route path="/pre-twinkle" element={<VideoLibrary title="Pre-Twinkle" mediaSrcMap={combinedPreTwinkleFiles} />} />
-        <Route path="/checkpoints" element={<VideoLibrary title="Cello Checkpoints" mediaSrcMap={allCheckpointsFiles} />} />
-        <Route path="/time-joggers" element={<VideoLibrary title="Cello time joggers" mediaSrcMap={allJoggersFiles} />} />
-        <Route path="/suzuki-mp3" element={<VideoLibrary title="Suzuki mp3 Official" mediaSrcMap={allSuzukiMp3OfficialFiles} />} />
-      </Routes>
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoading />}>
+          <Routes>
+            <Route path="/" element={<StudentPicker />} />
+            <Route path="/student/:id" element={<StudentDashboard />} />
+            <Route path="/teacher" element={<RequireTeacher><TeacherDashboard /></RequireTeacher>} />
+            <Route path="/books" element={<VideoLibrary title="Books Library" category="books" />} />
+            <Route path="/pre-twinkle" element={<VideoLibrary title="Pre-Twinkle" category="pretwinkle" />} />
+            <Route path="/checkpoints" element={<VideoLibrary title="Cello Checkpoints" category="checkpoints" />} />
+            <Route path="/time-joggers" element={<VideoLibrary title="Cello time joggers" category="joggers" />} />
+            <Route path="/suzuki-mp3" element={<VideoLibrary title="Suzuki mp3 Official" category="suzukimp3" />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
     </Layout>
   );
 }

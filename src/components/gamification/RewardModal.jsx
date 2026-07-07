@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { CHEST, METRONOME, stickerSrc } from "./assets";
 
-const CONFETTI_COLORS = ["#994100", "#C6A15B", "#722F37", "#186474", "#ff8439", "#d7e9b9"];
+// Design 2.0 tokens — kept in sync with @theme in index.css via CSS variables.
+const CONFETTI_COLORS = [
+  "var(--color-primary)",
+  "var(--color-rosin)",
+  "var(--color-lake)",
+  "var(--color-madder)",
+  "var(--color-secondary)",
+  "var(--color-primary-fixed-dim)"
+];
 
 const RARITY_LABEL = { common: "Common", rare: "Rare ✨", legendary: "LEGENDARY 🌟" };
 
@@ -18,7 +26,7 @@ const makeConfettiPieces = () =>
 function Confetti() {
   const [pieces] = useState(makeConfettiPieces);
   return (
-    <div className="pointer-events-none fixed inset-0 overflow-hidden z-[80]">
+    <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
       {pieces.map((p, i) => (
         <span
           key={i}
@@ -45,8 +53,8 @@ export default function RewardModal({ result, onClose }) {
 
   if (result.tooShort) {
     return (
-      <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-md p-6" onClick={onClose}>
-        <div className="bg-surface-container-low rounded-[2rem] p-8 max-w-sm text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="fixed inset-0 z-[70] flex items-center justify-center bg-scrim/70 backdrop-blur-md p-6" onClick={onClose} role="presentation">
+        <div className="bg-surface-container-low rounded-3xl p-8 max-w-sm text-center shadow-2xl" onClick={(e) => e.stopPropagation()} role="presentation">
           <p className="text-4xl mb-3">🎻</p>
           <h2 className="font-headline text-2xl font-bold text-on-background mb-2">That was quick!</h2>
           <p className="text-on-surface-variant mb-6">
@@ -61,9 +69,9 @@ export default function RewardModal({ result, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-md p-6">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-scrim/70 backdrop-blur-md p-6">
       <Confetti />
-      <div className="bg-surface-container-low rounded-[2rem] p-8 max-w-md w-full text-center shadow-2xl relative z-[90]">
+      <div className="bg-surface-container-low rounded-3xl p-8 max-w-md w-full text-center shadow-2xl relative z-10">
         <h2 className="font-headline text-3xl font-bold text-primary mb-1">Bravo!</h2>
         <p className="text-on-surface-variant font-medium mb-4">
           {result.minutes} min today — pearl #{result.streak} on your necklace 📿
@@ -110,7 +118,7 @@ export default function RewardModal({ result, onClose }) {
               </p>
               <p className={`text-sm font-bold ${
                 result.sticker.rarity === "legendary" ? "text-primary" :
-                result.sticker.rarity === "rare" ? "text-amber-600" : "text-on-surface-variant"
+                result.sticker.rarity === "rare" ? "text-rosin" : "text-on-surface-variant"
               }`}>
                 {RARITY_LABEL[result.sticker.rarity]}
                 {result.duplicate && <span className="text-on-surface-variant font-medium"> — duplicate → 🎵 notes!</span>}

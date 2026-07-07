@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   getGamifyState,
   getStreak,
@@ -14,60 +14,96 @@ import BalanceWeek from "./BalanceWeek";
 import StickerAlbum from "./StickerAlbum";
 import RewardModal from "./RewardModal";
 
+const activeSessionKey = (studentId) => `gamify_active_${studentId}`;
+
+// A restored session older than this is discarded — the tab was most likely
+// just left open, not practiced in.
+const MAX_RESTORED_SESSION_MS = 4 * 60 * 60 * 1000;
+
+const readActiveSession = (studentId) => {
+  try {
+    const raw = localStorage.getItem(activeSessionKey(studentId));
+    if (!raw) return null;
+    const startedAt = Number(raw);
+    if (!Number.isFinite(startedAt) || Date.now() - startedAt > MAX_RESTORED_SESSION_MS) {
+      localStorage.removeItem(activeSessionKey(studentId));
+      return null;
+    }
+    return startedAt;
+  } catch {
+    return null;
+  }
+};
+
 export default function GamificationPanel({ studentId, mediaActive }) {
   const [state, setState] = useState(() => getGamifyState(studentId));
-  const [running, setRunning] = useState(false);
-  const [seconds, setSeconds] = useState(0);
+  // startedAt (ms) of the running practice session, or null. Persisted to
+  // localStorage so a reload or accidental navigation doesn't lose the time.
+  const [startedAt, setStartedAt] = useState(() => readActiveSession(studentId));
   const [result, setResult] = useState(null);
-  const startedAtRef = useRef(null);
 
+  // The panel is remounted per student (key={student.id} in StudentDashboard),
+  // so initial state comes from the lazy useState initializers above; this
+  // effect only subscribes to storage updates.
   useEffect(() => {
     const refresh = () => setState(getGamifyState(studentId));
-    refresh();
     window.addEventListener("gamify_updated", refresh);
     return () => window.removeEventListener("gamify_updated", refresh);
   }, [studentId]);
 
-  // Tick from a wall-clock anchor so the count survives throttled tabs.
-  useEffect(() => {
-    if (!running) return;
-    const tick = setInterval(() => {
-      setSeconds(Math.floor((Date.now() - startedAtRef.current) / 1000));
-    }, 1000);
-    return () => clearInterval(tick);
-  }, [running]);
-
   const start = useCallback(() => {
-    setRunning((wasRunning) => {
-      if (!wasRunning) {
-        startedAtRef.current = Date.now();
-        setSeconds(0);
+    setStartedAt((current) => {
+      if (current) return current;
+      const now = Date.now();
+      try {
+        localStorage.setItem(activeSessionKey(studentId), String(now));
+      } catch {
+        // Persisting is best-effort; the timer still runs in memory.
       }
-      return true;
+      return now;
     });
-  }, []);
-
-  const stop = useCallback(() => {
-    if (!startedAtRef.current) return;
-    setRunning(false);
-    const elapsed = Math.floor((Date.now() - startedAtRef.current) / 1000);
-    startedAtRef.current = null;
-    setSeconds(0);
-    setResult(finishSession(studentId, elapsed));
   }, [studentId]);
 
-  // Opening any assigned lesson starts the practice timer automatically.
+  const stop = useCallback(() => {
+    setStartedAt((current) => {
+      if (!current) return null;
+      localStorage.removeItem(activeSessionKey(studentId));
+      const elapsed = Math.floor((Date.now() - current) / 1000);
+      setResult(finishSession(studentId, elapsed));
+      return null;
+    });
+  }, [studentId]);
+
+  // Opening any assigned lesson starts the practice timer automatically;
+  // closing the player finishes the session so no practice minutes are lost.
+  const prevMediaActiveRef = useRef(mediaActive);
   useEffect(() => {
-    if (mediaActive) start();
-  }, [mediaActive, start]);
+    if (mediaActive && !prevMediaActiveRef.current) start();
+    else if (!mediaActive && prevMediaActiveRef.current) stop();
+    prevMediaActiveRef.current = mediaActive;
+  }, [mediaActive, start, stop]);
+
+  const running = startedAt !== null;
+
+  // Derived views over the whole session history — recompute only when the
+  // stored state changes, not on every tick.
+  const derived = useMemo(
+    () => ({
+      streak: getStreak(state),
+      week: getWeek(state),
+      goldenWeek: isGoldenWeek(state),
+      mood: getCellinoMood(state)
+    }),
+    [state]
+  );
 
   return (
     <div className="flex flex-col gap-6 mb-10">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-surface-container-low/60 border border-outline-variant/30 rounded-3xl p-5 shadow-sm">
-        <CellinoWidget mood={running ? "cheering" : getCellinoMood(state)} streak={getStreak(state)} />
+        <CellinoWidget mood={running ? "cheering" : derived.mood} streak={derived.streak} />
         <PracticeTimer
-          running={running}
-          seconds={seconds}
+          key={startedAt ?? "idle"}
+          startedAt={startedAt}
           targetMin={state.dailyTargetMin}
           onStart={start}
           onStop={stop}
@@ -76,9 +112,9 @@ export default function GamificationPanel({ studentId, mediaActive }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <BalanceWeek
-          week={getWeek(state)}
+          week={derived.week}
           targetMin={state.dailyTargetMin}
-          goldenWeek={isGoldenWeek(state)}
+          goldenWeek={derived.goldenWeek}
           notes={state.notes}
           onChangeTarget={(minutes) => setDailyTarget(studentId, minutes)}
         />

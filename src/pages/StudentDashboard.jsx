@@ -1,40 +1,25 @@
 import { useParams } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { subscribeToStudents, getStudents, importStudent } from "../api";
-import { Play, X, Headphones, FileText } from "lucide-react";
+import { Play, Headphones, FileText, Music } from "lucide-react";
 import { allMediaFiles } from "../mediaConfig";
 import GamificationPanel from "../components/gamification/GamificationPanel";
+import MediaOverlay from "../components/MediaOverlay";
+import EmptyState from "../components/ui/EmptyState";
+
+const getMediaType = (path) => {
+  if (!path) return 'video';
+  const ext = path.split('.').pop().toLowerCase();
+  if (ext === 'pdf') return 'book';
+  if (['mp3', 'wav'].includes(ext)) return 'audio';
+  return 'video';
+};
 
 export default function StudentDashboard() {
   const { id } = useParams();
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [playingVideo, setPlayingVideo] = useState(null);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const audioRef = useRef(null);
-  const iframeRef = useRef(null);
-
-  const handleSpeedChange = (e) => {
-    const speed = parseFloat(e.target.value);
-    setPlaybackSpeed(speed);
-    if (audioRef.current) {
-      audioRef.current.playbackRate = speed;
-    }
-  };
-
-  const handleAudioLoad = () => {
-    if (audioRef.current) {
-      audioRef.current.playbackRate = playbackSpeed;
-    }
-  };
-
-  const getMediaType = (path) => {
-    if (!path) return 'video';
-    const ext = path.split('.').pop().toLowerCase();
-    if (ext === 'pdf') return 'book';
-    if (['mp3', 'wav'].includes(ext)) return 'audio';
-    return 'video';
-  };
 
   useEffect(() => {
     let isMounted = true;
@@ -45,7 +30,8 @@ export default function StudentDashboard() {
     const dParam = searchParams.get('d');
     if (dParam) {
       try {
-        const decoded = decodeURIComponent(escape(atob(dParam)));
+        const bytes = Uint8Array.from(atob(dParam), (c) => c.charCodeAt(0));
+        const decoded = new TextDecoder().decode(bytes);
         const imported = JSON.parse(decoded);
         if (imported && imported.id === id) {
           importStudent(imported);
@@ -101,17 +87,17 @@ export default function StudentDashboard() {
       <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary mb-6">
         Welcome, {student.name}!
       </h1>
-      
+
       <p className="text-on-surface-variant text-lg mb-8 font-medium">
         Here are your currently assigned lessons. Keep practicing!
       </p>
 
-      <GamificationPanel studentId={student.id} mediaActive={!!playingVideo} />
+      <GamificationPanel key={student.id} studentId={student.id} mediaActive={!!playingVideo} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {student.assignedVideos && student.assignedVideos.length > 0 ? (
           student.assignedVideos.map((video, index) => (
-            <div key={index} className={`group bg-surface-container-low border border-outline-variant/30 hover:border-primary/50 border-l-4 p-6 flex flex-col gap-4 rounded-3xl transition-all shadow-sm hover:shadow-md ${
+            <div key={`${video.videoId}-${index}`} className={`group bg-surface-container-low border border-outline-variant/30 hover:border-primary/50 border-l-4 p-6 flex flex-col gap-4 rounded-3xl transition-all shadow-sm hover:shadow-md ${
               video.type === 'book' ? "border-l-madder" :
               video.type === 'audio' ? "border-l-rosin" :
               "border-l-lake"
@@ -133,89 +119,33 @@ export default function StudentDashboard() {
                   </span>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setPlayingVideo(video)}
-                className="w-full bg-primary text-on-primary font-medium py-3 px-4 rounded-full transition-opacity hover:opacity-90 flex items-center justify-center mt-2 cursor-pointer"
+                className="w-full bg-primary hover:bg-primary-dim text-on-primary font-medium py-3 px-4 rounded-full transition-colors flex items-center justify-center mt-2 cursor-pointer"
               >
                 Practice Now
               </button>
             </div>
           ))
         ) : (
-          <div className="col-span-full text-on-surface-variant p-12 text-center text-lg">
-            You don't have any assignments right now. Enjoy your free time!
-          </div>
+          <EmptyState
+            icon={Music}
+            title="You don't have any assignments right now"
+            hint="Enjoy your free time!"
+            className="col-span-full"
+          />
         )}
       </div>
 
       {/* Media Player Overlay */}
-      {playingVideo && (() => {
-         const videoUrl = allMediaFiles[playingVideo.videoId]; // Fetch URL from dictionary
-         const type = getMediaType(playingVideo.videoId);      // Extract media type from filename
-         return (
-           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-6" onClick={() => setPlayingVideo(null)}>
-             <div className="bg-surface-container-low border border-outline-variant/30 rounded-3xl shadow-2xl w-full max-w-7xl h-full max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
-               <div className="flex justify-between items-center p-4 sm:p-6 border-b border-outline-variant/20 bg-surface-container shrink-0">
-                 <h2 className="font-headline text-xl sm:text-2xl font-bold text-on-background break-words">{playingVideo.title}</h2>
-                 <div className="flex items-center gap-2">
-                   {type === 'book' && (
-                     <button
-                       onClick={() => {
-                         if (iframeRef.current && iframeRef.current.requestFullscreen) {
-                           iframeRef.current.requestFullscreen();
-                         }
-                       }}
-                       className="hidden md:flex items-center gap-2 bg-surface-variant hover:bg-surface-container-highest border-none px-4 py-2 rounded-xl text-on-surface-variant hover:text-primary font-bold cursor-pointer transition-colors shadow-sm"
-                       title="Fullscreen"
-                     >
-                       Fullscreen
-                     </button>
-                   )}
-                   <button onClick={() => setPlayingVideo(null)} className="p-2 hover:bg-surface-variant text-on-surface-variant rounded-xl transition-colors shrink-0 outline-none" title="Close">
-                     <X size={28} />
-                   </button>
-                 </div>
-               </div>
-               
-               <div className="flex-1 overflow-hidden bg-black/10 flex items-center justify-center p-2 sm:p-6 relative">
-                 {!videoUrl ? (
-                   <div className="text-on-surface-variant text-lg bg-surface-container-low p-8 rounded-2xl shadow-sm text-center">
-                     <p className="font-bold text-xl mb-2 text-primary">Media not found</p>
-                     <p>Old link type or file is missing. Please ask the teacher to reassign the task.</p>
-                   </div>
-                 ) : type === 'book' ? (
-                   <iframe ref={iframeRef} src={videoUrl} className="w-full h-full border-none rounded-xl bg-white shadow-md" title={playingVideo.title} />
-                 ) : type === 'audio' ? (
-                   <div className="w-full h-full flex flex-col items-center justify-center gap-8 bg-surface-container rounded-2xl">
-                       <div className="p-8 bg-rosin-wash rounded-full animate-pulse">
-                         <Headphones size={64} className="text-rosin" />
-                       </div>
-                       <audio ref={audioRef} onLoadedData={handleAudioLoad} src={videoUrl} controls autoPlay className="w-full max-w-md shadow-md rounded-full" />
-                       <div className="flex items-center gap-4 bg-surface-container-low p-4 rounded-xl border border-outline-variant/30 shadow-sm mt-4">
-                          <label htmlFor="speed" className="font-bold text-on-surface-variant">Speed:</label>
-                          <select 
-                            id="speed"
-                            value={playbackSpeed}
-                            onChange={handleSpeedChange}
-                            className="bg-surface-variant text-on-surface p-2 rounded-lg border-none focus:ring-2 focus:ring-primary outline-none cursor-pointer font-medium"
-                          >
-                            <option value="0.5">0.5x</option>
-                            <option value="0.75">0.75x</option>
-                            <option value="1">1x (Normal)</option>
-                            <option value="1.25">1.25x</option>
-                            <option value="1.5">1.5x</option>
-                          </select>
-                        </div>
-                    </div>
-                 ) : (
-                   <video src={videoUrl} controls autoPlay className="w-full h-full object-contain rounded-xl shadow-md bg-black" />
-                 )}
-               </div>
-             </div>
-           </div>
-         );
-      })()}
-
+      {playingVideo && (
+        <MediaOverlay
+          title={playingVideo.title}
+          url={allMediaFiles[playingVideo.videoId]}
+          type={getMediaType(playingVideo.videoId)}
+          onClose={() => setPlayingVideo(null)}
+        />
+      )}
     </div>
   );
 }
