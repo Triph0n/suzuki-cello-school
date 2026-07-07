@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Play, Square } from "lucide-react";
 
 const format = (seconds) => {
@@ -6,7 +7,22 @@ const format = (seconds) => {
   return `${m}:${String(s).padStart(2, "0")}`;
 };
 
-export default function PracticeTimer({ running, seconds, targetMin, onStart, onStop }) {
+const elapsedSince = (startedAt) =>
+  startedAt ? Math.max(0, Math.floor((Date.now() - startedAt) / 1000)) : 0;
+
+export default function PracticeTimer({ startedAt, targetMin, onStart, onStop }) {
+  const running = startedAt !== null;
+  const [seconds, setSeconds] = useState(() => elapsedSince(startedAt));
+
+  // Tick from the wall-clock anchor so the count survives throttled tabs.
+  // Ticking lives here so the whole panel doesn't re-render every second;
+  // the parent remounts this component per session (key={startedAt}).
+  useEffect(() => {
+    if (!startedAt) return;
+    const tick = setInterval(() => setSeconds(elapsedSince(startedAt)), 1000);
+    return () => clearInterval(tick);
+  }, [startedAt]);
+
   const progress = Math.min(seconds / (targetMin * 60), 1);
 
   return (

@@ -50,6 +50,16 @@ export const allJoggersFiles = mapToR2(manifest.joggersFiles);
 export const allBooksFiles = mapToR2(manifest.booksLibraryFiles);
 export const allSuzukiMp3OfficialFiles = mapToR2(manifest.suzukiMp3OfficialFiles);
 
+// Route-level lookup so App.jsx can pass a plain string and this module
+// (with the bundled manifest) stays out of the entry chunk.
+export const MEDIA_CATEGORIES = {
+  books: allBooksFiles,
+  pretwinkle: combinedPreTwinkleFiles,
+  checkpoints: allCheckpointsFiles,
+  joggers: allJoggersFiles,
+  suzukimp3: allSuzukiMp3OfficialFiles,
+};
+
 export const allMediaFiles = {
   ...combinedPreTwinkleFiles,
   ...allCheckpointsFiles,

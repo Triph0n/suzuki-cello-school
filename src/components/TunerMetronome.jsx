@@ -155,7 +155,14 @@ const TunerMetronome = () => {
     
     source.connect(gainNode);
     gainNode.connect(audioContextRef.current.destination);
-    
+
+    // Release both nodes once the click has played, otherwise hours of
+    // metronome use keep growing the audio graph.
+    source.onended = () => {
+      source.disconnect();
+      gainNode.disconnect();
+    };
+
     source.start(time);
   };
 
@@ -377,12 +384,12 @@ const TunerMetronome = () => {
           <span className="font-semibold text-sm flex items-center gap-1">
             <Activity size={16} /> Metronome
           </span>
-          <span className="text-xs font-mono bg-surface-variant px-2 py-1 rounded-md">{bpm} BPM</span>
+          <span className="text-xs tabular-nums bg-surface-variant px-2 py-1 rounded-lg">{bpm} BPM</span>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={toggleMetronome}
-            className={`p-2 rounded-full flex-shrink-0 transition-colors ${isMetronomePlaying ? 'bg-error text-on-error' : 'bg-primary text-on-primary'}`}
+            className={`w-10 h-10 flex items-center justify-center rounded-full flex-shrink-0 transition-colors ${isMetronomePlaying ? 'bg-error text-on-error' : 'bg-primary text-on-primary'}`}
             title={isMetronomePlaying ? 'Zastavit metronom' : 'Spustit metronom'}
           >
             {isMetronomePlaying ? <Square size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
@@ -393,11 +400,11 @@ const TunerMetronome = () => {
             onPointerUp={stopBpmChange}
             onPointerLeave={stopBpmChange}
             onPointerCancel={stopBpmChange}
-            className="w-8 h-8 rounded-lg bg-surface-variant hover:bg-surface-container-high active:scale-95 transition-all text-on-surface flex items-center justify-center flex-shrink-0 select-none touch-none"
+            className="w-10 h-10 rounded-lg bg-surface-variant hover:bg-surface-container-high active:scale-95 transition-all text-on-surface flex items-center justify-center flex-shrink-0 select-none touch-none"
             title="Snížit tempo (přidržením plynule)"
             aria-label="Snížit tempo"
           >
-            <Minus size={14} />
+            <Minus size={16} />
           </button>
 
           <input
@@ -414,11 +421,11 @@ const TunerMetronome = () => {
             onPointerUp={stopBpmChange}
             onPointerLeave={stopBpmChange}
             onPointerCancel={stopBpmChange}
-            className="w-8 h-8 rounded-lg bg-surface-variant hover:bg-surface-container-high active:scale-95 transition-all text-on-surface flex items-center justify-center flex-shrink-0 select-none touch-none"
+            className="w-10 h-10 rounded-lg bg-surface-variant hover:bg-surface-container-high active:scale-95 transition-all text-on-surface flex items-center justify-center flex-shrink-0 select-none touch-none"
             title="Zvýšit tempo (přidržením plynule)"
             aria-label="Zvýšit tempo"
           >
-            <Plus size={14} />
+            <Plus size={16} />
           </button>
         </div>
       </div>
@@ -433,7 +440,7 @@ const TunerMetronome = () => {
           </span>
           <button
             onClick={toggleListening}
-            className={`h-8 w-8 rounded-full flex items-center justify-center transition-colors ${
+            className={`h-10 w-10 rounded-full flex items-center justify-center transition-colors ${
               isListening ? 'bg-error text-on-error' : 'bg-tertiary text-on-tertiary'
             }`}
             aria-label={isListening ? 'Stop listening' : 'Start listening'}
@@ -446,8 +453,8 @@ const TunerMetronome = () => {
         <div className="relative h-28 overflow-hidden rounded-xl bg-surface-container-low border border-outline-variant/30 px-3 pt-3">
           <div className="absolute left-3 right-3 top-4 h-16 rounded-t-full border-t-4 border-l-4 border-r-4 border-outline-variant/40" />
           <div className="absolute left-1/2 top-5 h-14 w-px bg-secondary -translate-x-1/2" />
-          <div className="absolute left-5 top-11 text-[10px] font-semibold text-on-surface-variant">LOW</div>
-          <div className="absolute right-5 top-11 text-[10px] font-semibold text-on-surface-variant">HIGH</div>
+          <div className="absolute left-5 top-11 text-xs font-semibold text-on-surface-variant">LOW</div>
+          <div className="absolute right-5 top-11 text-xs font-semibold text-on-surface-variant">HIGH</div>
           <div
             className={`absolute left-1/2 bottom-8 h-16 w-1 origin-bottom rounded-full transition-transform duration-150 ${
               isInTune && detectedFrequency ? 'bg-secondary' : 'bg-error'
@@ -456,13 +463,13 @@ const TunerMetronome = () => {
           />
           <div className="absolute left-1/2 bottom-7 h-4 w-4 -translate-x-1/2 rounded-full bg-on-background shadow-sm" />
           <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between text-xs">
-            <span className="font-mono text-on-surface-variant">
+            <span className="tabular-nums text-on-surface-variant">
               {detectedFrequency ? `${detectedFrequency.toFixed(1)} Hz` : '-- Hz'}
             </span>
             <span className={`font-bold ${isInTune && detectedFrequency ? 'text-secondary' : 'text-error'}`}>
               {pitchLabel}
             </span>
-            <span className="font-mono text-on-surface-variant">
+            <span className="tabular-nums text-on-surface-variant">
               {detectedFrequency ? `${pitchCents > 0 ? '+' : ''}${pitchCents.toFixed(0)} ct` : '-- ct'}
             </span>
           </div>

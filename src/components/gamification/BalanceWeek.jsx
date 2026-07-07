@@ -1,3 +1,4 @@
+import { Trophy, Music } from "lucide-react";
 import { METRONOME } from "./assets";
 
 const DAY_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
@@ -10,12 +11,12 @@ export default function BalanceWeek({ week, targetMin, goldenWeek, notes, onChan
   return (
     <div className="bg-surface-container-low border border-outline-variant/30 rounded-3xl p-5 shadow-sm">
       <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
-        <h3 className="font-headline text-lg font-bold text-on-background">
-          Balance week {goldenWeek && <span title="Golden beat!">🏆</span>}
+        <h3 className="font-headline text-lg font-bold text-on-background flex items-center gap-2">
+          Balance week {goldenWeek && <Trophy size={18} className="text-rosin" aria-label="Golden beat!" />}
         </h3>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-on-surface-variant font-medium" title="Notes earned from duplicate stickers">
-            🎵 {notes}
+          <span className="flex items-center gap-1 text-xs text-on-surface-variant font-medium" title="Notes earned from duplicate stickers">
+            <Music size={14} className="text-tertiary" aria-hidden="true" /> {notes}
           </span>
           <select
             value={targetMin}
@@ -42,12 +43,12 @@ export default function BalanceWeek({ week, targetMin, goldenWeek, notes, onChan
               {day.baton ? (
                 <img src={METRONOME} alt="Steady beat earned" className="w-9 h-9 object-contain drop-shadow-sm" />
               ) : day.minutes > 0 ? (
-                <span className="text-lg" title="Practiced, but under the goal">🎵</span>
+                <Music size={18} className="text-tertiary" aria-label="Practiced, but under the goal" />
               ) : (
                 <span className="w-2.5 h-2.5 rounded-full bg-surface-variant" />
               )}
             </div>
-            <span className={`text-[10px] font-bold uppercase ${day.isToday ? "text-primary" : "text-on-surface-variant"}`}>
+            <span className={`text-xs font-bold uppercase ${day.isToday ? "text-primary" : "text-on-surface-variant"}`}>
               {dayLabel(day.key)}
             </span>
           </div>
