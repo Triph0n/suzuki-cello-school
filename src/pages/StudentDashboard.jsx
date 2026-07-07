@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { subscribeToStudents, getStudents, importStudent } from "../api";
 import { Play, X, Headphones, FileText } from "lucide-react";
 import { allMediaFiles } from "../mediaConfig";
+import GamificationPanel from "../components/gamification/GamificationPanel";
 
 export default function StudentDashboard() {
   const { id } = useParams();
@@ -101,9 +102,11 @@ export default function StudentDashboard() {
         Welcome, {student.name}!
       </h1>
       
-      <p className="text-on-surface-variant text-lg mb-10 font-medium">
+      <p className="text-on-surface-variant text-lg mb-8 font-medium">
         Here are your currently assigned lessons. Keep practicing!
       </p>
+
+      <GamificationPanel studentId={student.id} mediaActive={!!playingVideo} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {student.assignedVideos && student.assignedVideos.length > 0 ? (

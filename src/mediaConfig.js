@@ -1,11 +1,22 @@
 import manifest from './mediaManifest.json';
 
-const MEDIA_BACKEND = import.meta.env.VITE_MEDIA_BACKEND || "cloudflare";
-const USE_LOCAL_MEDIA = MEDIA_BACKEND === "local";
+const isLocalRuntime =
+  import.meta.env.DEV ||
+  (typeof window !== "undefined" &&
+    ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname));
 
-// Server/cloud builds use the Cloudflare Pages Function endpoint.
-const R2_BASE_URL = "/api/media";
-const LOCAL_MEDIA_BASE_URL = "/src";
+// Explicit build-time override (Dockerfile sets VITE_MEDIA_BACKEND=cloudflare);
+// otherwise local PC runs play the bundled files directly from disk via Vite
+// and deployed builds use the media endpoint backed by R2.
+const MEDIA_BACKEND = import.meta.env.VITE_MEDIA_BACKEND;
+const MEDIA_STORAGE_MODE =
+  import.meta.env.VITE_MEDIA_STORAGE_MODE ||
+  (MEDIA_BACKEND
+    ? (MEDIA_BACKEND === "local" ? "local" : "r2")
+    : (isLocalRuntime ? "local" : "r2"));
+const MEDIA_BASE_URL =
+  import.meta.env.VITE_MEDIA_BASE_URL ||
+  (MEDIA_STORAGE_MODE === "local" ? "/src" : "/api/media");
 
 // R2 bucket uses 'Video/' (capital V) but manifest has lowercase 'video/'
 // This map corrects the casing for each top-level folder
@@ -20,35 +31,24 @@ function mapToR2(fileObj) {
     const cleanPath = val.replace(/^\.\//, ''); // remove leading ./
     const parts = cleanPath.split('/');
     // Correct top-level folder casing to match R2 bucket keys
-    if (parts[0] && R2_FOLDER_MAP[parts[0]]) {
+    if (MEDIA_STORAGE_MODE === "r2" && parts[0] && R2_FOLDER_MAP[parts[0]]) {
       parts[0] = R2_FOLDER_MAP[parts[0]];
     }
     // Encode each segment to handle spaces and special characters
-    const encodedParts = parts.map(part => encodeURIComponent(part));
-    mapped[key] = R2_BASE_URL + '/' + encodedParts.join('/');
+    const encodedParts = parts.map((part) => {
+      const encoded = encodeURIComponent(part);
+      return MEDIA_STORAGE_MODE === "local" ? encoded.replace(/%2B/gi, "+") : encoded;
+    });
+    mapped[key] = MEDIA_BASE_URL + '/' + encodedParts.join('/');
   }
   return mapped;
 }
 
-function mapToLocal(fileObj) {
-  const mapped = {};
-  for (const [key, val] of Object.entries(fileObj)) {
-    const cleanPath = val.replace(/^\.\//, '');
-    const encodedPath = cleanPath.split('/').map(part => encodeURIComponent(part)).join('/');
-    mapped[key] = `${LOCAL_MEDIA_BASE_URL}/${encodedPath}`;
-  }
-  return mapped;
-}
-
-function mapMedia(fileObj) {
-  return USE_LOCAL_MEDIA ? mapToLocal(fileObj) : mapToR2(fileObj);
-}
-
-export const combinedPreTwinkleFiles = mapMedia({ ...manifest.preTwinkleFiles, ...manifest.preTwinkleMp3Files });
-export const allCheckpointsFiles = mapMedia(manifest.checkpointsFiles);
-export const allJoggersFiles = mapMedia(manifest.joggersFiles);
-export const allBooksFiles = mapMedia(manifest.booksLibraryFiles);
-export const allSuzukiMp3OfficialFiles = mapMedia(manifest.suzukiMp3OfficialFiles);
+export const combinedPreTwinkleFiles = mapToR2({ ...manifest.preTwinkleFiles, ...manifest.preTwinkleMp3Files });
+export const allCheckpointsFiles = mapToR2(manifest.checkpointsFiles);
+export const allJoggersFiles = mapToR2(manifest.joggersFiles);
+export const allBooksFiles = mapToR2(manifest.booksLibraryFiles);
+export const allSuzukiMp3OfficialFiles = mapToR2(manifest.suzukiMp3OfficialFiles);
 
 export const allMediaFiles = {
   ...combinedPreTwinkleFiles,
