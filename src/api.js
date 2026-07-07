@@ -2,6 +2,8 @@ const DATA_BACKEND = import.meta.env.VITE_DATA_BACKEND || "local";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 const USE_SERVER = DATA_BACKEND === "server";
 
+export const usesServerBackend = () => USE_SERVER;
+
 const serverCache = {
   students: [],
   materials: [],
@@ -112,6 +114,32 @@ function subscribe(eventName, loader, callback) {
     window.removeEventListener(eventName, handler);
   };
 }
+
+// -- AUTH API (server mode only) --
+
+export const login = async (email, password) => {
+  const payload = await apiFetch("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password })
+  });
+  notify("students_updated");
+  notify("materials_updated");
+  notify("attendances_updated");
+  return payload.user;
+};
+
+export const logout = async () => {
+  await apiFetch("/api/auth/logout", { method: "POST" });
+  serverCache.students = [];
+  serverCache.materials = [];
+  serverCache.attendances = [];
+};
+
+export const getCurrentUser = async () => {
+  if (!USE_SERVER) return null;
+  const payload = await apiFetch("/api/auth/me");
+  return payload.user;
+};
 
 // -- STUDENTS API --
 
@@ -306,7 +334,10 @@ export const editAttendance = async (attendanceId, newDate, newNote) => {
 
 // -- DATABASE IMPORT/EXPORT & RESET API --
 
-export const exportDatabasePayload = () => {
+export const exportDatabasePayload = async () => {
+  if (USE_SERVER) {
+    return apiFetch("/api/admin/export");
+  }
   return {
     students: getStudents(),
     materials: getMaterials(),
@@ -314,18 +345,15 @@ export const exportDatabasePayload = () => {
   };
 };
 
-export const importDatabasePayload = (payload) => {
+export const importDatabasePayload = async (payload) => {
   if (USE_SERVER) {
-    apiFetch("/api/admin/import", {
+    await apiFetch("/api/admin/import", {
       method: "POST",
       body: JSON.stringify(payload)
-    }).then(() => {
-      notify("students_updated");
-      notify("materials_updated");
-      notify("attendances_updated");
-    }).catch((error) => {
-      console.error("Failed to import server database payload", error);
     });
+    notify("students_updated");
+    notify("materials_updated");
+    notify("attendances_updated");
     return;
   }
 
@@ -344,18 +372,15 @@ export const importDatabasePayload = (payload) => {
   notify("attendances_updated");
 };
 
-export const resetDatabase = () => {
+export const resetDatabase = async () => {
   if (USE_SERVER) {
-    apiFetch("/api/admin/reset", { method: "POST" }).then(() => {
-      serverCache.students = [];
-      serverCache.materials = [];
-      serverCache.attendances = [];
-      notify("students_updated");
-      notify("materials_updated");
-      notify("attendances_updated");
-    }).catch((error) => {
-      console.error("Failed to reset server database", error);
-    });
+    await apiFetch("/api/admin/reset", { method: "POST" });
+    serverCache.students = [];
+    serverCache.materials = [];
+    serverCache.attendances = [];
+    notify("students_updated");
+    notify("materials_updated");
+    notify("attendances_updated");
     return;
   }
 

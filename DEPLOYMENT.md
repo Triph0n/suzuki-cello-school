@@ -38,12 +38,23 @@ curl https://app.suzukicello.ch/api/health
 Create or reuse an SSH key and add its public key to the Oracle VPS instance. Then run:
 
 ```powershell
-.\ops\deploy-vps.ps1 -HostName "YOUR_VPS_IP" -SshUser "opc" -AdminEmail "teacher@example.com" -AdminPassword "replace-with-a-strong-password"
+.\ops\deploy-vps.ps1 -HostName "YOUR_VPS_IP" -SshUser "opc" -AdminEmail "teacher@example.com"
 ```
 
 Use `-SshUser ubuntu` if the instance runs Ubuntu instead of Oracle Linux.
 
-The script uploads the app, installs Docker when needed, writes `.env`, starts Docker Compose, runs the first migration, creates the teacher admin, and checks `/api/health`.
+On the first deploy the script prompts for the teacher admin password (it is
+never passed on the command line), generates `POSTGRES_PASSWORD` and
+`SESSION_SECRET`, writes `.env` on the VPS, starts Docker Compose, runs the
+migration, creates the teacher admin, and checks `/api/health`.
+
+Re-deploys keep the existing `.env` (and therefore all secrets and the
+database password) and never touch the `backups/` directory. To reset the
+admin password later, run on the VPS:
+
+```sh
+sudo docker compose exec -e FORCE_ADMIN_PASSWORD=1 app sh -lc "cd /app/server && npm run create-admin"
+```
 
 ## Oracle Smoke Test
 
@@ -66,7 +77,7 @@ After DNS points to the instance, verify publicly:
 curl https://app.suzukicello.ch/api/health
 ```
 
-The current frontend still needs the login screen to be wired to `/api/auth/login`, so the first Oracle test should prove backend, database, Docker, Caddy, and media wiring before relying on the full teacher UI.
+The teacher UI is gated by the login screen at `/teacher` (session cookie via `/api/auth/login`). Media under `/api/media/*` is proxied by Caddy to the Cloudflare Pages deployment set in `MEDIA_UPSTREAM`.
 
 ## Backups
 

@@ -32,8 +32,6 @@ const ASSIGNMENT_TABS = [
 
 export default function TeacherDashboard() {
 
-  const isAuthenticated = true;
-
   const [students, setStudents] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [attendances, setAttendances] = useState([]);
@@ -77,7 +75,6 @@ export default function TeacherDashboard() {
   const [newMaterialCategory, setNewMaterialCategory] = useState("PDF");
   
   useEffect(() => {
-    if (!isAuthenticated) return;
     const unsubStudents = subscribeToStudents((data) => {
       setStudents(data);
     });
@@ -93,7 +90,7 @@ export default function TeacherDashboard() {
       if (unsubMaterials) unsubMaterials();
       if (unsubAttendances) unsubAttendances();
     };
-  }, [isAuthenticated]);
+  }, []);
 
   const initiateAddVideo = (studentId) => {
     setAssignModalStudentId(studentId);
@@ -205,9 +202,9 @@ export default function TeacherDashboard() {
     }
   };
 
-  const handleExportDatabase = () => {
+  const handleExportDatabase = async () => {
     try {
-      const payload = exportDatabasePayload();
+      const payload = await exportDatabasePayload();
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
@@ -227,7 +224,7 @@ export default function TeacherDashboard() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const json = JSON.parse(e.target.result);
         if (!json || typeof json !== 'object') {
@@ -246,7 +243,7 @@ export default function TeacherDashboard() {
         const confirmMsg = "Are you sure you want to import this backup? This will overwrite your current students, materials, and lesson logs in this browser.";
         if (!window.confirm(confirmMsg)) return;
 
-        importDatabasePayload(json);
+        await importDatabasePayload(json);
         alert("Backup successfully restored!");
         // Clear file input value
         event.target.value = "";
@@ -258,15 +255,15 @@ export default function TeacherDashboard() {
     reader.readAsText(file);
   };
 
-  const handleResetDatabase = () => {
-    const confirm1 = window.confirm("WARNING: This will permanently delete all students, materials, and lesson records in this browser. Are you sure you want to continue?");
+  const handleResetDatabase = async () => {
+    const confirm1 = window.confirm("WARNING: This will permanently delete all students, materials, and lesson records. Are you sure you want to continue?");
     if (!confirm1) return;
 
     const confirm2 = window.confirm("This action cannot be undone. Are you absolutely sure you want to reset the database?");
     if (!confirm2) return;
 
     try {
-      resetDatabase();
+      await resetDatabase();
       alert("Database reset successfully.");
     } catch (e) {
       console.error(e);

@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, Link, useLocation } from "react-router-dom";
-import { Music, CheckSquare, Settings, Users, Menu, X, Book } from "lucide-react";
+import { Routes, Route, Link, useLocation, useNavigate } from "react-router-dom";
+import { Music, CheckSquare, Settings, Users, Menu, X, Book, LogOut } from "lucide-react";
 import StudentPicker from "./pages/StudentPicker";
 import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import VideoLibrary from "./pages/VideoLibrary";
 import TunerMetronome from "./components/TunerMetronome";
+import RequireTeacher from "./components/RequireTeacher";
+import { logout, usesServerBackend } from "./api";
 
 // Load files using Vite's glob import
 import { combinedPreTwinkleFiles, allCheckpointsFiles, allJoggersFiles, allBooksFiles, allSuzukiMp3OfficialFiles } from "./mediaConfig";
@@ -13,6 +15,16 @@ import { combinedPreTwinkleFiles, allCheckpointsFiles, allJoggersFiles, allBooks
 const Layout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.warn("Logout request failed", error);
+    }
+    navigate("/");
+  };
 
   const isTeacherMode = location.pathname.startsWith('/teacher') ||
                         location.pathname.startsWith('/books') ||
@@ -84,6 +96,17 @@ const Layout = ({ children }) => {
 
         <div className="mt-8 pt-4 border-t border-outline-variant/30">
           <NavLink to="/teacher" icon={<Settings size={20} />} label="Teacher Mode" />
+          {isTeacherMode && usesServerBackend() && (
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-on-surface-variant hover:text-error hover:bg-madder-wash transition-all duration-200 group"
+            >
+              <div className="text-tertiary group-hover:text-error transition-colors">
+                <LogOut size={20} />
+              </div>
+              <span className="font-medium">Sign out</span>
+            </button>
+          )}
         </div>
       </nav>
 
@@ -115,7 +138,7 @@ function App() {
       <Routes>
         <Route path="/" element={<StudentPicker />} />
         <Route path="/student/:id" element={<StudentDashboard />} />
-        <Route path="/teacher" element={<TeacherDashboard />} />
+        <Route path="/teacher" element={<RequireTeacher><TeacherDashboard /></RequireTeacher>} />
         <Route path="/books" element={<VideoLibrary title="Books Library" mediaSrcMap={allBooksFiles} />} />
         <Route path="/pre-twinkle" element={<VideoLibrary title="Pre-Twinkle" mediaSrcMap={combinedPreTwinkleFiles} />} />
         <Route path="/checkpoints" element={<VideoLibrary title="Cello Checkpoints" mediaSrcMap={allCheckpointsFiles} />} />

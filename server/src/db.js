@@ -11,7 +11,10 @@ export function getPool() {
     }
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      max: Number(process.env.PG_POOL_MAX || 10)
+      max: Number(process.env.PG_POOL_MAX || 10),
+      connectionTimeoutMillis: 5000,
+      idleTimeoutMillis: 30000,
+      statement_timeout: 15000
     });
   }
   return pool;

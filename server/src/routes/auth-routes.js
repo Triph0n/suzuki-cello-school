@@ -1,4 +1,4 @@
-import { clearSessionCookie, createSession, destroySession, getSessionUser, setSessionCookie, verifyPassword } from "../auth.js";
+import { COOKIE_NAME, clearSessionCookie, createSession, destroySession, getSessionUser, setSessionCookie, verifyAgainstDummy, verifyPassword } from "../auth.js";
 import { query } from "../db.js";
 
 function publicUser(user) {
@@ -12,11 +12,29 @@ function publicUser(user) {
 }
 
 export async function registerAuthRoutes(app) {
-  app.post("/api/auth/login", async (request, reply) => {
-    const { email, password } = request.body || {};
-    if (!email || !password) {
-      return reply.code(400).send({ error: "Email and password are required" });
+  app.post("/api/auth/login", {
+    config: {
+      rateLimit: {
+        max: 5,
+        timeWindow: "1 minute",
+        errorResponseBuilder: () => ({
+          statusCode: 429,
+          error: "Too many login attempts. Try again in a minute."
+        })
+      }
+    },
+    schema: {
+      body: {
+        type: "object",
+        required: ["email", "password"],
+        properties: {
+          email: { type: "string", minLength: 3, maxLength: 320 },
+          password: { type: "string", minLength: 1, maxLength: 1024 }
+        }
+      }
     }
+  }, async (request, reply) => {
+    const { email, password } = request.body;
 
     const result = await query(
       "SELECT id, email, display_name, role, password_hash FROM users WHERE lower(email) = lower($1)",
@@ -24,7 +42,11 @@ export async function registerAuthRoutes(app) {
     );
     const user = result.rows[0];
 
-    if (!user || !verifyPassword(String(password), user.password_hash)) {
+    const passwordOk = user
+      ? await verifyPassword(String(password), user.password_hash)
+      : await verifyAgainstDummy(String(password));
+
+    if (!user || !passwordOk) {
       return reply.code(401).send({ error: "Invalid email or password" });
     }
 
@@ -34,7 +56,7 @@ export async function registerAuthRoutes(app) {
   });
 
   app.post("/api/auth/logout", async (request, reply) => {
-    await destroySession(request.cookies?.suzuki_session);
+    await destroySession(request.cookies?.[COOKIE_NAME]);
     clearSessionCookie(reply);
     return { ok: true };
   });

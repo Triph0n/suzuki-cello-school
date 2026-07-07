@@ -12,18 +12,27 @@ if (!email || !password) {
 }
 
 try {
-  const passwordHash = hashPassword(password);
-  await query(
+  const passwordHash = await hashPassword(password);
+  // Do not overwrite the password of an existing account — re-running the
+  // deploy script with a stale ADMIN_PASSWORD must not revert a manually
+  // changed password. Use FORCE_ADMIN_PASSWORD=1 to reset it explicitly.
+  const force = process.env.FORCE_ADMIN_PASSWORD === "1";
+  const result = await query(
     `INSERT INTO users (email, display_name, password_hash, role)
      VALUES ($1, $2, $3, 'teacher')
      ON CONFLICT (email) DO UPDATE
-     SET display_name = excluded.display_name,
-         password_hash = excluded.password_hash,
+     SET password_hash = CASE WHEN $4 THEN excluded.password_hash ELSE users.password_hash END,
          role = 'teacher',
-         updated_at = now()`,
-    [email, displayName, passwordHash]
+         updated_at = now()
+     RETURNING (xmax = 0) AS inserted`,
+    [email, displayName, passwordHash, force]
   );
-  console.log(`Teacher admin ready: ${email}`);
+  const inserted = result.rows[0]?.inserted;
+  console.log(
+    inserted
+      ? `Teacher admin created: ${email}`
+      : `Teacher admin already exists: ${email}${force ? " (password reset)" : " (password unchanged)"}`
+  );
 } finally {
   await closePool();
 }

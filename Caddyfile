@@ -1,4 +1,21 @@
 {$APP_DOMAIN} {
   encode zstd gzip
-  reverse_proxy app:3000
+
+  header {
+    X-Content-Type-Options nosniff
+    X-Frame-Options SAMEORIGIN
+    Referrer-Policy strict-origin-when-cross-origin
+  }
+
+  # Media stays on Cloudflare; the app requests it same-origin under
+  # /api/media/* and Caddy forwards to the Pages deployment.
+  handle /api/media/* {
+    reverse_proxy https://{$MEDIA_UPSTREAM:suzuki-cello-school.pages.dev} {
+      header_up Host {$MEDIA_UPSTREAM:suzuki-cello-school.pages.dev}
+    }
+  }
+
+  handle {
+    reverse_proxy app:3000
+  }
 }
