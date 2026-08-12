@@ -189,7 +189,7 @@ export default function TeacherDashboard() {
           <div className="flex flex-wrap gap-2.5 w-full sm:w-auto">
             <button
               onClick={handleShareStudentLink}
-              title={usesServerBackend() ? "Vytvoří nový privátní odkaz; předchozí odkaz přestane fungovat." : undefined}
+              title={usesServerBackend() ? "Creates a new private link; the previous one stops working." : undefined}
               className={`flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 sm:px-6 py-3 border rounded-full font-bold cursor-pointer transition-all duration-300 shadow-md hover:shadow-lg ${
                 copied
                   ? "bg-secondary-container border-secondary-fixed-dim text-on-secondary-container"
@@ -197,7 +197,7 @@ export default function TeacherDashboard() {
               }`}
             >
               <Share2 size={20} className="shrink-0" />
-              <span className="truncate">{copied ? "Kopírováno!" : "Sdílet odkaz"}</span>
+              <span className="truncate">{copied ? "Copied!" : "Share link"}</span>
             </button>
             <button
               onClick={() => setAttendanceModal({ editing: null })}

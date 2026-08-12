@@ -15,13 +15,19 @@ const notify = (eventName) => {
 };
 
 async function apiFetch(path, options = {}) {
+  const { headers, ...rest } = options;
   const response = await fetch(`${API_BASE_URL}${path}`, {
     credentials: "include",
+    ...rest,
     headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {})
-    },
-    ...options
+      // Only announce a JSON body when there actually is one. Fastify refuses a
+      // request that declares application/json and then sends nothing —
+      // "Body cannot be empty when content-type is set to 'application/json'" —
+      // which is what broke every bodyless POST and DELETE, the share link and
+      // logout among them.
+      ...(rest.body !== undefined ? { "Content-Type": "application/json" } : {}),
+      ...(headers || {})
+    }
   });
 
   if (!response.ok) {
