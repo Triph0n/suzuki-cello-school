@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { subscribeToStudents, subscribeToMaterials, addStudent, deleteStudent, updateStudentVideos, addMaterial, deleteMaterial, subscribeToAttendances, addAttendance, deleteAttendance, editAttendance, createStudentPortalLink, usesServerBackend } from "../api";
 import { Play, Headphones, FileText, UserPlus, Plus, Book, Trash2, Calendar, ChevronLeft, Edit2, ChevronDown, ChevronRight, Share2, Users } from "lucide-react";
-import { combinedPreTwinkleFiles, allCheckpointsFiles, allJoggersFiles, allBooksFiles, allSuzukiMp3OfficialFiles, formatMediaName } from "../mediaConfig";
+import { MEDIA_TABS, KIND_LABEL } from "../mediaCatalogue";
 import Avatar from "../components/ui/Avatar";
 import EmptyState from "../components/ui/EmptyState";
 import useDialogs from "../components/ui/useDialogs";
@@ -12,33 +12,6 @@ import AddMaterialModal from "../components/teacher/AddMaterialModal";
 import DatabaseCard from "../components/teacher/DatabaseCard";
 import MusicianAwarder from "../components/teacher/MusicianAwarder";
 import PracticeGoal from "../components/teacher/PracticeGoal";
-
-const getAvailableFiles = (globMap, categoryLabel) => {
-  return Object.keys(globMap).map((path) => {
-    const parts = path.split('/');
-    const folder = parts.length > 2 ? parts.slice(2, -1).join(' / ') : "";
-    const extension = path.split('.').pop().toLowerCase();
-    let fileType = 'video';
-    if (extension === 'pdf') fileType = 'book';
-    else if (['mp3', 'wav'].includes(extension)) fileType = 'audio';
-
-    return {
-      videoId: path, // Use path as unique id
-      title: formatMediaName(path),
-      category: categoryLabel,
-      type: fileType,
-      folder: folder
-    };
-  }).sort((a,b) => a.title.localeCompare(b.title, undefined, {numeric: true}));
-};
-
-const ASSIGNMENT_TABS = [
-  { id: 'pretwinkle', label: "Pre-Twinkle", files: getAvailableFiles(combinedPreTwinkleFiles, "pretwinkle") },
-  { id: 'checkpoints', label: "Checkpoints", files: getAvailableFiles(allCheckpointsFiles, "checkpoints") },
-  { id: 'joggers', label: "Time Joggers", files: getAvailableFiles(allJoggersFiles, "timejoggers") },
-  { id: 'suzukimp3', label: "Suzuki mp3", files: getAvailableFiles(allSuzukiMp3OfficialFiles, "suzukimp3") },
-  { id: 'books', label: "Books", files: getAvailableFiles(allBooksFiles, "book") }
-];
 
 export default function TeacherDashboard() {
   const [students, setStudents] = useState([]);
@@ -421,10 +394,22 @@ export default function TeacherDashboard() {
                   {materials.map((mat) => (
                     <div key={mat.id} className="flex items-center justify-between py-4 border-b border-outline-variant/20 last:border-0 last:pb-0 first:pt-0">
                       <div className="flex items-center gap-4">
-                        <Book size={28} className="text-tertiary hidden sm:block shrink-0" />
+                        {/* The kind came from the file, so show it rather than a
+                            generic book for everything. */}
+                        {mat.type === "audio" ? (
+                          <Headphones size={28} className="text-primary hidden sm:block shrink-0" />
+                        ) : mat.type === "video" ? (
+                          <Play size={28} className="text-primary hidden sm:block shrink-0" />
+                        ) : mat.type === "book" ? (
+                          <FileText size={28} className="text-primary hidden sm:block shrink-0" />
+                        ) : (
+                          <Book size={28} className="text-primary hidden sm:block shrink-0" />
+                        )}
                         <div>
                           <h4 className="font-headline font-bold text-on-background m-0 text-lg">{mat.title}</h4>
-                          <span className="text-on-surface-variant text-sm font-medium inline-block mt-1 uppercase tracking-wide">{mat.category}</span>
+                          <span className="text-on-surface-variant text-sm font-medium inline-block mt-1 uppercase tracking-wide">
+                            {KIND_LABEL[mat.type] || mat.category}
+                          </span>
                         </div>
                       </div>
                       <button
@@ -462,7 +447,7 @@ export default function TeacherDashboard() {
 
       {assignModalStudentId && (
         <AssignmentModal
-          tabs={ASSIGNMENT_TABS}
+          tabs={MEDIA_TABS}
           onAssign={handleAssignSelectedVideo}
           onClose={() => setAssignModalStudentId(null)}
         />
