@@ -155,19 +155,22 @@ export default function TeacherDashboard() {
   return (
     <div className="max-w-6xl mx-auto py-8">
 
-      {/* HEADER */}
-      <div className="flex justify-between items-center mb-10">
-        <div className="flex items-center gap-4">
+      {/* HEADER
+          Wraps on a phone: the student's name plus two full-width pill buttons
+          do not fit on 390 px, and without wrapping the last button was cut off
+          the right edge with no way to scroll to it. */}
+      <div className="flex flex-wrap justify-between items-center gap-4 mb-10">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           {selectedStudentId && (
             <button
               onClick={() => setSelectedStudentId(null)}
-              className="p-3 bg-surface-variant hover:bg-outline-variant/30 text-on-surface-variant rounded-full transition-colors shadow-sm"
+              className="p-3 bg-surface-variant hover:bg-outline-variant/30 text-on-surface-variant rounded-full transition-colors shadow-sm shrink-0"
               title="Back to list"
             >
               <ChevronLeft size={24} />
             </button>
           )}
-          <h1 className="font-headline text-4xl md:text-5xl font-bold text-primary">
+          <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold text-primary truncate">
             {selectedStudentId ? selectedStudent?.name : "Teacher Dashboard"}
           </h1>
         </div>
@@ -183,25 +186,25 @@ export default function TeacherDashboard() {
         )}
 
         {selectedStudentId && (
-          <div className="flex gap-2.5">
+          <div className="flex flex-wrap gap-2.5 w-full sm:w-auto">
             <button
               onClick={handleShareStudentLink}
               title={usesServerBackend() ? "Vytvoří nový privátní odkaz; předchozí odkaz přestane fungovat." : undefined}
-              className={`flex items-center gap-2 px-6 py-3 border rounded-full font-bold cursor-pointer transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-1 ${
+              className={`flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 sm:px-6 py-3 border rounded-full font-bold cursor-pointer transition-all duration-300 shadow-md hover:shadow-lg ${
                 copied
                   ? "bg-secondary-container border-secondary-fixed-dim text-on-secondary-container"
                   : "bg-secondary-container border-outline-variant/30 text-on-secondary-container hover:bg-secondary-fixed-dim"
               }`}
             >
-              <Share2 size={20} />
-              <span>{copied ? "Kopírováno!" : "Sdílet odkaz"}</span>
+              <Share2 size={20} className="shrink-0" />
+              <span className="truncate">{copied ? "Kopírováno!" : "Sdílet odkaz"}</span>
             </button>
             <button
               onClick={() => setAttendanceModal({ editing: null })}
-              className="flex items-center gap-2 px-6 py-3 bg-tertiary hover:bg-tertiary/90 text-on-tertiary border-none rounded-full font-bold cursor-pointer transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-1"
+              className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 sm:px-6 py-3 bg-tertiary hover:bg-tertiary/90 text-on-tertiary border-none rounded-full font-bold cursor-pointer transition-all duration-300 shadow-md hover:shadow-lg"
             >
-              <Calendar size={20} />
-              <span>Log Lesson</span>
+              <Calendar size={20} className="shrink-0" />
+              <span className="truncate">Log Lesson</span>
             </button>
           </div>
         )}
