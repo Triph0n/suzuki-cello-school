@@ -1,0 +1,8 @@
+# Shell scripts run on the VPS through /bin/sh. A CR at the end of the shebang
+# or of `set -eu` makes dash fail with "set: Illegal option -", so these files
+# must keep LF endings no matter what core.autocrlf does on Windows.
+*.sh text eol=lf
+Dockerfile text eol=lf
+Caddyfile text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf

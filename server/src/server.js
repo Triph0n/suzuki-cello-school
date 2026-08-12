@@ -13,6 +13,7 @@ import { registerAuthRoutes } from "./routes/auth-routes.js";
 import { registerHealthRoutes } from "./routes/health.js";
 import { registerLessonNoteRoutes } from "./routes/lesson-notes.js";
 import { registerMaterialRoutes } from "./routes/materials.js";
+import { registerStudentPortalRoutes } from "./routes/student-portal.js";
 import { registerStudentRoutes } from "./routes/students.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -48,6 +49,7 @@ export async function buildApp() {
   await registerHealthRoutes(app);
   await registerAuthRoutes(app);
   await registerStudentRoutes(app);
+  await registerStudentPortalRoutes(app);
   await registerMaterialRoutes(app);
   await registerLessonNoteRoutes(app);
   await registerAdminRoutes(app);

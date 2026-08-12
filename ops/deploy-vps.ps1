@@ -2,7 +2,8 @@ param(
   [Parameter(Mandatory=$true)]
   [string]$HostName,
 
-  [string]$SshUser = "opc",
+  # Oracle's Ubuntu images log in as "ubuntu"; "opc" is the Oracle Linux user.
+  [string]$SshUser = "ubuntu",
 
   [string]$KeyPath = "$HOME\.ssh\suzuki_oracle_vps_ed25519",
 
@@ -122,7 +123,9 @@ if ($firstDeploy) {
   Invoke-Ssh "cd '$RemoteDir' && sudo docker compose exec app sh -lc 'cd /app/server && npm run create-admin'"
 }
 
+# The app container does not publish port 3000 to the host — only Caddy is
+# exposed — so the health check has to run inside the container.
 Write-Host "Checking health..."
-Invoke-Ssh "cd '$RemoteDir' && sudo docker compose ps && curl -fsS http://127.0.0.1:3000/api/health"
+Invoke-Ssh "cd '$RemoteDir' && sudo docker compose ps && sudo docker compose exec -T app wget -qO- http://127.0.0.1:3000/api/health"
 
 Write-Host "Deploy finished: $PublicAppOrigin"

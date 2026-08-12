@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { subscribeToStudents, subscribeToMaterials, addStudent, deleteStudent, updateStudentVideos, addMaterial, deleteMaterial, subscribeToAttendances, addAttendance, deleteAttendance, editAttendance } from "../api";
+import { subscribeToStudents, subscribeToMaterials, addStudent, deleteStudent, updateStudentVideos, addMaterial, deleteMaterial, subscribeToAttendances, addAttendance, deleteAttendance, editAttendance, createStudentPortalLink, usesServerBackend } from "../api";
 import { Play, Headphones, FileText, UserPlus, Plus, Book, Trash2, Calendar, ChevronLeft, Edit2, ChevronDown, ChevronRight, Share2, Users } from "lucide-react";
 import { combinedPreTwinkleFiles, allCheckpointsFiles, allJoggersFiles, allBooksFiles, allSuzukiMp3OfficialFiles, formatMediaName } from "../mediaConfig";
 import Avatar from "../components/ui/Avatar";
@@ -10,6 +10,8 @@ import AssignmentModal from "../components/teacher/AssignmentModal";
 import AddStudentModal from "../components/teacher/AddStudentModal";
 import AddMaterialModal from "../components/teacher/AddMaterialModal";
 import DatabaseCard from "../components/teacher/DatabaseCard";
+import MusicianAwarder from "../components/teacher/MusicianAwarder";
+import PracticeGoal from "../components/teacher/PracticeGoal";
 
 const getAvailableFiles = (globMap, categoryLabel) => {
   return Object.keys(globMap).map((path) => {
@@ -146,16 +148,22 @@ export default function TeacherDashboard() {
     const targetStudent = students.find(s => s.id === selectedStudentId);
     if (!targetStudent) return;
     try {
-      const shareData = {
-        id: targetStudent.id,
-        name: targetStudent.name,
-        assignedVideos: targetStudent.assignedVideos || []
-      };
-      const bytes = new TextEncoder().encode(JSON.stringify(shareData));
-      let binary = "";
-      for (const byte of bytes) binary += String.fromCharCode(byte);
-      const base64Data = btoa(binary);
-      const shareUrl = `${window.location.origin}/student/${targetStudent.id}?d=${encodeURIComponent(base64Data)}`;
+      let shareUrl;
+      if (usesServerBackend()) {
+        // Private tokenized link; generating a new one invalidates the old one.
+        shareUrl = await createStudentPortalLink(targetStudent.id);
+      } else {
+        const shareData = {
+          id: targetStudent.id,
+          name: targetStudent.name,
+          assignedVideos: targetStudent.assignedVideos || []
+        };
+        const bytes = new TextEncoder().encode(JSON.stringify(shareData));
+        let binary = "";
+        for (const byte of bytes) binary += String.fromCharCode(byte);
+        const base64Data = btoa(binary);
+        shareUrl = `${window.location.origin}/student/${targetStudent.id}?d=${encodeURIComponent(base64Data)}`;
+      }
 
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
@@ -205,6 +213,7 @@ export default function TeacherDashboard() {
           <div className="flex gap-2.5">
             <button
               onClick={handleShareStudentLink}
+              title={usesServerBackend() ? "Vytvoří nový privátní odkaz; předchozí odkaz přestane fungovat." : undefined}
               className={`flex items-center gap-2 px-6 py-3 border rounded-full font-bold cursor-pointer transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-1 ${
                 copied
                   ? "bg-secondary-container border-secondary-fixed-dim text-on-secondary-container"
@@ -339,6 +348,9 @@ export default function TeacherDashboard() {
                   )}
                 </div>
              </div>
+
+             <PracticeGoal key={`goal-${selectedStudentId}`} studentId={selectedStudentId} />
+             <MusicianAwarder key={selectedStudentId} studentId={selectedStudentId} />
           </div>
         </div>
       ) : (

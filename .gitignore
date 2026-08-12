@@ -28,3 +28,6 @@ src/books/
 src/mp3/
 src/video/
 .wrangler/
+
+# One-off asset conversion scripts and local logs
+tmp/

@@ -44,5 +44,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     include: ['src/**/*.test.js'],
+    // The default forks pool fails to spawn workers on the Windows dev
+    // machine ("Timeout waiting for worker to respond"); threads work fine.
+    pool: 'threads',
   },
 })

@@ -32,6 +32,9 @@ services:
       HOST: 0.0.0.0
       PORT: 3000
       PUBLIC_APP_ORIGIN: ${PUBLIC_APP_ORIGIN:?Set PUBLIC_APP_ORIGIN in .env}
+      # Left empty on purpose: the server then derives it from
+      # PUBLIC_APP_ORIGIN. Set it in .env only to override that.
+      COOKIE_SECURE: ${COOKIE_SECURE:-}
       SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env}
       DATABASE_URL: postgres://${POSTGRES_USER:-suzuki}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-suzuki_cello}
     depends_on:

@@ -1,60 +1,76 @@
 @import "tailwindcss";
 
-/* Design 2.0 — paleta odvozená ze světa cella:
-   papír = smrkové víko, akcent = lak, média = mořena / kalafuna / jezerní.
-   Názvy tokenů zůstávají (Material 3 styl), aby se nemusel přepisovat JSX. */
+/* Club 1920 — tmavý hudební salon: mahagon, mosaz, smaltované ciferníky.
+   Odvozeno z Fortin Piccola (~/Documents/Projects/piccolo-metronome), viz skill
+   `club-1920`. Názvy tokenů zůstávají v Material 3 stylu, aby se nemusel
+   přepisovat JSX — mění se jen to, co znamenají:
+     background / surface  = zelený salon a kůže na stěnách
+     primary               = leštěná mosaz (zlaté písmo a hlavní tlačítka)
+     surface-container-*   = mahagonový nábytek, od tmavého k světlejšímu */
 @theme {
-  --color-background: #faf6ef;
-  --color-surface: #faf6ef;
-  --color-surface-bright: #ffffff;
-  --color-surface-dim: #e6ddcb;
-  --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #ffffff;
-  --color-surface-container: #f2ecdf;
-  --color-surface-container-high: #ece5d5;
-  --color-surface-container-highest: #e6ddcb;
-  --color-surface-variant: #f2ecdf;
-  --color-surface-hover: #ece5d5;
+  --color-background: #0c1410;
+  --color-surface: #0c1410;
+  --color-surface-bright: #22392a;
+  --color-surface-dim: #080e0b;
+  --color-surface-container-lowest: #0a110d;
+  --color-surface-container-low: #15241a;
+  --color-surface-container: #1b2b20;
+  --color-surface-container-high: #22392a;
+  --color-surface-container-highest: #2b4433;
+  --color-surface-variant: #1b2b20;
+  --color-surface-hover: #22392a;
 
-  --color-primary: #b4552d;
-  --color-primary-dim: #93441f;
-  --color-primary-container: #f6e3d7;
-  --color-on-primary-container: #6d3115;
-  --color-on-primary: #faf6ef;
-  --color-primary-fixed-dim: #d97a4e;
+  /* mosaz */
+  --color-primary: #c99d47;
+  --color-primary-dim: #7a5822;
+  --color-primary-container: #3a2e14;
+  --color-on-primary-container: #f0d492;
+  --color-on-primary: #2a1607;
+  --color-primary-fixed-dim: #f0d492;
 
-  --color-secondary: #5a6a3c;
-  --color-secondary-container: #e5ead2;
-  --color-on-secondary-container: #46542c;
-  --color-on-secondary: #f4f7e8;
-  --color-secondary-fixed-dim: #cdd8ae;
+  /* zeleň salonu */
+  --color-secondary: #7f9a5e;
+  --color-secondary-container: #1f3325;
+  --color-on-secondary-container: #cdd8ae;
+  --color-on-secondary: #0c1410;
+  --color-secondary-fixed-dim: #4a5f37;
 
-  --color-tertiary: #1d6a72;
-  --color-tertiary-container: #d9ecec;
-  --color-on-tertiary-container: #14525a;
-  --color-on-tertiary-fixed-variant: #1d6a72;
-  --color-on-tertiary: #e9f6f6;
+  /* modrý pokoj */
+  --color-tertiary: #5c9aa5;
+  --color-tertiary-container: #14303a;
+  --color-on-tertiary-container: #b8dbe2;
+  --color-on-tertiary-fixed-variant: #5c9aa5;
+  --color-on-tertiary: #08161b;
 
-  --color-error: #a03333;
-  --color-on-error: #fdf1ee;
+  --color-error: #c05a4e;
+  --color-on-error: #1a0b09;
 
   /* Sémantika typů médií: noty / nahrávky / video */
-  --color-madder: #a03333;
-  --color-madder-wash: #f4dfd8;
-  --color-rosin: #a06a00;
-  --color-rosin-wash: #f3e7c8;
-  --color-lake: #1d6a72;
-  --color-lake-wash: #d9ecec;
+  --color-madder: #b4564c;
+  --color-madder-wash: #2a1315;
+  --color-rosin: #c99d47;
+  --color-rosin-wash: #33270f;
+  --color-lake: #5c9aa5;
+  --color-lake-wash: #14303a;
 
-  --color-outline-variant: #ddd4c2;
-  --color-scrim: #241f1a;
-  --color-on-surface: #2b2723;
-  --color-on-surface-variant: #6b6258;
-  --color-on-background: #2b2723;
+  /* mosazný vlas místo linky */
+  --color-outline-variant: #6b5426;
+  --color-scrim: #050907;
+  --color-on-surface: #e9dfc6;
+  --color-on-surface-variant: #a2957a;
+  --color-on-background: #e9dfc6;
+
+  /* mahagon — pro dřevěné plochy */
+  --color-wood: #63290f;
+  --color-wood-dark: #38180c;
+  --color-wood-hi: #8d431f;
+  /* smaltový ciferník ze slonoviny */
+  --color-plate: #e9dcbc;
+  --color-plate-ink: #332718;
 
   --font-headline: "Fraunces Variable", "Iowan Old Style", Georgia, serif;
   --font-display: "Fraunces Variable", "Iowan Old Style", Georgia, serif;
-  --font-body: "Plus Jakarta Sans Variable", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Fraunces Variable", "Iowan Old Style", Georgia, serif;
   --font-label: "Plus Jakarta Sans Variable", "Segoe UI", system-ui, sans-serif;
 
   /* Jednotná škála tvarů: 8 / 14 / 22 px */
@@ -64,11 +80,75 @@
   --radius-3xl: 22px;
 }
 
+/* The room: light falls from above the top edge, the corners fall away. */
 body {
   min-height: 100dvh;
   background-color: var(--color-background);
+  background-image: radial-gradient(
+    130% 100% at 50% -10%,
+    var(--color-surface-container) 0%,
+    var(--color-background) 55%
+  );
+  background-attachment: fixed;
+  color: var(--color-on-background);
 }
 
+/* Behind the content like the backdrop, but painted after it, so the corners of
+   the room fall away without dimming the text. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* The Born lakeside town used to sit behind the whole app. It is gone on
+   purpose: the child's screen carries one picture at a time, and that picture
+   is the card they earned. The artwork stays in src/assets/backdrop-town.webp
+   in case a calmer place for it turns up. */
+
+/* --- Club 1920 materials -------------------------------------------------
+   Two fills that carry the whole style: polished brass for the one action that
+   matters on a screen, buttoned leather for everything else. Both light from
+   above, both with a brass hairline. Kept as classes because a gradient plus
+   three shadows is unreadable as Tailwind arbitrary values. */
+.club-brass {
+  background-image: linear-gradient(
+    180deg,
+    var(--color-primary-fixed-dim) 0%,
+    var(--color-primary) 45%,
+    var(--color-primary-dim) 100%
+  );
+  color: var(--color-on-primary);
+  border: 1px solid var(--color-primary-fixed-dim);
+  box-shadow:
+    0 8px 24px rgba(214, 166, 74, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.25);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.club-leather {
+  background-image: linear-gradient(
+    180deg,
+    var(--color-surface-container-high),
+    var(--color-surface-container-low)
+  );
+  border: 1px solid rgba(201, 157, 71, 0.35);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+/* An engraved plate: small caps, widely spaced, the label on a brass fitting. */
+.club-plate {
+  font-family: var(--font-label);
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  color: var(--color-on-surface-variant);
+}
 
 /* --- Gamification animations --- */
 @keyframes gami-confetti-fall {
@@ -80,6 +160,18 @@ body {
   top: -20px;
   border-radius: 2px;
   animation: gami-confetti-fall linear forwards;
+}
+
+/* Cellino's hop: a small lift with a pause at the bottom, so it reads as a
+   cello jumping for joy rather than an image being jiggled. */
+@keyframes gami-hop-kf {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-12%); }
+}
+.gami-hop { animation: gami-hop-kf 1.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .gami-hop { animation: none; }
 }
 
 @keyframes gami-wiggle-kf {
@@ -98,8 +190,16 @@ body {
 }
 .gami-pop { animation: gami-pop-kf 0.45s ease-out; }
 
+/* For absolutely positioned art that is centred with left:50% */
 @keyframes gami-rise-kf {
   0% { transform: translate(-50%, 40px) scale(0.4); opacity: 0; }
   100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
 }
 .gami-rise { animation: gami-rise-kf 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both; }
+
+/* Same entrance for in-flow blocks (the card rising out of the chest) */
+@keyframes gami-rise-block-kf {
+  0% { transform: translateY(40px) scale(0.4); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+.gami-rise-block { animation: gami-rise-block-kf 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both; }

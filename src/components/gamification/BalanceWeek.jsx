@@ -1,35 +1,81 @@
-import { Trophy, Music } from "lucide-react";
-import { METRONOME } from "./assets";
+import { Trophy } from "lucide-react";
 
 const DAY_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
 const dayLabel = (key) => DAY_LABELS[new Date(`${key}T12:00:00`).getDay()];
 
-export default function BalanceWeek({ week, targetMin, goldenWeek, notes, onChangeTarget }) {
-  const batons = week.filter((d) => d.baton).length;
+// One motif in three states instead of three icons: a pearl that is full
+// (steady day), half full (practiced under the goal) or empty. Today's pearl
+// fills up live with the minutes practiced, so the child sees exactly how
+// close today's pearl is.
+function Pearl({ fraction, today, label }) {
+  const size = 36;
+  const fill = Math.max(0, Math.min(1, fraction));
+  const clipId = `pearl-${label}`;
 
   return (
-    <div className="bg-surface-container-low border border-outline-variant/30 rounded-3xl p-5 shadow-sm">
-      <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      role="img"
+      aria-label={
+        fill >= 1 ? "Full pearl" : fill > 0 ? "Pearl filling up" : "Empty pearl"
+      }
+    >
+      <defs>
+        <radialGradient id={`${clipId}-g`} cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stopColor="#f9eed6" />
+          <stop offset="55%" stopColor="#dfbd7e" />
+          <stop offset="100%" stopColor="#a97c35" />
+        </radialGradient>
+        <clipPath id={clipId}>
+          <rect x="0" y={size * (1 - fill)} width={size} height={size * fill} />
+        </clipPath>
+      </defs>
+
+      {/* empty shell */}
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={size / 2 - 3}
+        fill="var(--color-surface-container-highest)"
+        stroke={today ? "var(--color-primary)" : "var(--color-outline-variant)"}
+        strokeWidth={today ? 2.5 : 1.5}
+      />
+      {/* filled part rises from the bottom */}
+      {fill > 0 && (
+        <g clipPath={`url(#${clipId})`}>
+          <circle cx={size / 2} cy={size / 2} r={size / 2 - 4.5} fill={`url(#${clipId}-g)`} />
+        </g>
+      )}
+      {/* highlight once the pearl is complete */}
+      {fill >= 1 && (
+        <ellipse cx={size * 0.38} cy={size * 0.32} rx={4.5} ry={3} fill="#fdf7e8" opacity="0.9" />
+      )}
+    </svg>
+  );
+}
+
+export default function BalanceWeek({ week, targetMin, goldenWeek }) {
+  const pearls = week.filter((d) => d.baton).length;
+  const today = week[week.length - 1];
+  // A day's pearl is complete at 75 % of the daily goal (the "steady beat").
+  const pearlAt = targetMin * 0.75;
+  const minutesLeft = Math.max(0, Math.ceil(pearlAt - today.minutes));
+
+  return (
+    <div className="club-leather rounded-3xl p-5">
+      <div className="flex items-center justify-between mb-4 gap-2">
         <h3 className="font-headline text-lg font-bold text-on-background flex items-center gap-2">
-          Balance week {goldenWeek && <Trophy size={18} className="text-rosin" aria-label="Golden beat!" />}
+          My week
+          {goldenWeek && <Trophy size={18} className="text-rosin" aria-label="Golden beat!" />}
         </h3>
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1 text-xs text-on-surface-variant font-medium" title="Notes earned from duplicate stickers">
-            <Music size={14} className="text-tertiary" aria-hidden="true" /> {notes}
-          </span>
-          <select
-            value={targetMin}
-            onChange={(e) => onChangeTarget(Number(e.target.value))}
-            className="bg-surface-variant text-on-surface text-xs p-1.5 rounded-lg border-none outline-none cursor-pointer font-medium"
-            title="Daily practice goal"
-          >
-            {[10, 15, 20, 25, 30].map((m) => (
-              <option key={m} value={m}>{m} min/day</option>
-            ))}
-          </select>
-        </div>
+        <span className="text-xs text-on-surface-variant font-medium">
+          Goal: {targetMin} min/day
+        </span>
       </div>
+
       <div className="grid grid-cols-7 gap-2">
         {week.map((day) => (
           <div
@@ -39,25 +85,39 @@ export default function BalanceWeek({ week, targetMin, goldenWeek, notes, onChan
             }`}
             title={`${day.minutes} min`}
           >
-            <div className="w-9 h-9 flex items-center justify-center">
-              {day.baton ? (
-                <img src={METRONOME} alt="Steady beat earned" className="w-9 h-9 object-contain drop-shadow-sm" />
-              ) : day.minutes > 0 ? (
-                <Music size={18} className="text-tertiary" aria-label="Practiced, but under the goal" />
-              ) : (
-                <span className="w-2.5 h-2.5 rounded-full bg-surface-variant" />
-              )}
-            </div>
-            <span className={`text-xs font-bold uppercase ${day.isToday ? "text-primary" : "text-on-surface-variant"}`}>
+            <Pearl
+              label={day.key}
+              today={day.isToday}
+              fraction={
+                day.isToday
+                  ? day.minutes / pearlAt
+                  : day.baton
+                    ? 1
+                    : day.minutes > 0
+                      ? 0.5
+                      : 0
+              }
+            />
+            <span
+              className={`text-xs font-bold uppercase ${
+                day.isToday ? "text-primary" : "text-on-surface-variant"
+              }`}
+            >
               {dayLabel(day.key)}
             </span>
           </div>
         ))}
       </div>
-      <p className="text-xs text-on-surface-variant mt-3 font-medium">
-        {batons >= 5
-          ? "Golden beat! 5+ steady days this week — a rare sticker is guaranteed."
-          : `${batons}/5 steady days for the Golden beat`}
+
+      <p className="text-sm font-bold text-on-background mt-3">
+        {today.baton
+          ? "Today's pearl is yours! 📿"
+          : `${minutesLeft} more min and today's pearl is full.`}
+      </p>
+      <p className="text-xs text-on-surface-variant mt-1 font-medium">
+        {goldenWeek
+          ? "Golden beat! 5 full pearls this week — a rare treasure is guaranteed."
+          : `${pearls}/5 full pearls for the Golden beat.`}
       </p>
     </div>
   );

@@ -95,10 +95,21 @@ export async function getSessionUser(request) {
   return result.rows[0] || null;
 }
 
+// A Secure cookie is dropped by the browser on a plain-HTTP origin, so nobody
+// could log in. The origin the app is actually served from therefore decides:
+// https:// → Secure, http:// (the bare VPS IP today) → not. COOKIE_SECURE
+// overrides it explicitly, e.g. when TLS is terminated further upstream.
+const useSecureCookie = () => {
+  if (process.env.COOKIE_SECURE) return process.env.COOKIE_SECURE === "true";
+  const origin = process.env.PUBLIC_APP_ORIGIN || "";
+  if (origin) return origin.startsWith("https://");
+  return process.env.NODE_ENV === "production";
+};
+
 const cookieAttributes = () => ({
   httpOnly: true,
   sameSite: "lax",
-  secure: process.env.NODE_ENV === "production",
+  secure: useSecureCookie(),
   path: "/"
 });
 

@@ -10,6 +10,7 @@ import { logout, usesServerBackend } from "./api";
 // demand (they also pull in the large media manifest).
 const StudentPicker = lazy(() => import("./pages/StudentPicker"));
 const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
+const StudentPortal = lazy(() => import("./pages/StudentPortal"));
 const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
 const VideoLibrary = lazy(() => import("./pages/VideoLibrary"));
 const TunerMetronome = lazy(() => import("./components/TunerMetronome"));
@@ -48,7 +49,9 @@ const Layout = ({ children }) => {
   }, [location.pathname]);
 
   return (
-    <div className="relative min-h-screen flex flex-col md:flex-row bg-background text-on-background font-body">
+    // No bg-* class on the shell: the Born landscape backdrop painted on
+    // body::before has to stay visible through the layout.
+    <div className="relative min-h-screen flex flex-col md:flex-row text-on-background font-body">
       {/* Mobile Top Bar */}
       <div className="md:hidden flex justify-between items-center p-4 bg-surface-container-low shadow-sm z-50 sticky top-0">
         <h1 className="font-headline text-xl font-bold text-primary">
@@ -150,6 +153,7 @@ function App() {
           <Routes>
             <Route path="/" element={<StudentPicker />} />
             <Route path="/student/:id" element={<StudentDashboard />} />
+            <Route path="/portal/:token" element={<StudentPortal />} />
             <Route path="/teacher" element={<RequireTeacher><TeacherDashboard /></RequireTeacher>} />
             <Route path="/books" element={<VideoLibrary title="Books Library" category="books" />} />
             <Route path="/pre-twinkle" element={<VideoLibrary title="Pre-Twinkle" category="pretwinkle" />} />

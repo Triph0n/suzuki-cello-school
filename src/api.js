@@ -141,6 +141,20 @@ export const getCurrentUser = async () => {
   return payload.user;
 };
 
+// -- STUDENT PORTAL API (server mode only) --
+
+export const createStudentPortalLink = async (studentId) => {
+  const payload = await apiFetch(
+    `/api/students/${encodeURIComponent(studentId)}/access-token`,
+    { method: "POST" }
+  );
+  return `${window.location.origin}${payload.path}`;
+};
+
+export const fetchStudentPortal = (token) => {
+  return apiFetch(`/api/student-portal/${encodeURIComponent(token)}`);
+};
+
 // -- STUDENTS API --
 
 export const getStudents = () => {

@@ -27,12 +27,15 @@ export default function PracticeTimer({ startedAt, targetMin, onStart, onStop })
 
   return (
     <div className="flex flex-col items-center gap-2">
+      {/* Idle it is the polished brass knob — the one thing on the screen meant
+          to be pressed. Running it sinks into dark wood, so the lit state is the
+          quiet one and the child is not staring at a glowing button. */}
       <button
         onClick={running ? onStop : onStart}
-        className={`relative w-28 h-28 rounded-full flex flex-col items-center justify-center shadow-md transition-transform hover:scale-105 cursor-pointer border-4 ${
+        className={`relative w-28 h-28 rounded-full flex flex-col items-center justify-center transition-transform hover:scale-105 active:scale-95 cursor-pointer ${
           running
-            ? "bg-primary text-on-primary border-primary-container animate-pulse"
-            : "bg-secondary-container text-on-secondary-container border-outline-variant/30"
+            ? "club-leather text-primary-fixed-dim"
+            : "club-brass"
         }`}
         title={running ? "Finish practice" : "Start practice"}
       >
@@ -52,15 +55,14 @@ export default function PracticeTimer({ startedAt, targetMin, onStart, onStop })
           </>
         )}
       </button>
-      <div className="w-28 h-2 bg-surface-variant rounded-full overflow-hidden">
+      {/* the groove the brass slide runs in */}
+      <div className="w-28 h-2 rounded-full overflow-hidden bg-surface-dim shadow-[inset_0_1px_3px_rgba(0,0,0,0.9)]">
         <div
-          className="h-full bg-tertiary rounded-full transition-all duration-1000"
+          className="h-full bg-primary rounded-full transition-all duration-1000"
           style={{ width: `${progress * 100}%` }}
         />
       </div>
-      <span className="text-xs text-on-surface-variant font-medium">
-        Goal: {targetMin} min
-      </span>
+      <span className="club-plate text-[11px]">Goal {targetMin} min</span>
     </div>
   );
 }

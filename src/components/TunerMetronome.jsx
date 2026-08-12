@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Square, Mic2, Activity, Power, Minus, Plus } from 'lucide-react';
+import { Mic2, Power } from 'lucide-react';
+import PiccoloMetronome from './PiccoloMetronome';
 
 const STRINGS = [
   { name: 'A', freq: 442.0 },
@@ -75,8 +76,6 @@ const autoCorrelate = (buf, sampleRate) => {
 };
 
 const TunerMetronome = () => {
-  const [bpm, setBpm] = useState(60);
-  const [isMetronomePlaying, setIsMetronomePlaying] = useState(false);
   const [activeString, setActiveString] = useState(null);
   const [isListening, setIsListening] = useState(false);
   const [detectedFrequency, setDetectedFrequency] = useState(null);
@@ -86,7 +85,6 @@ const TunerMetronome = () => {
 
   // References for Web Audio API
   const audioContextRef = useRef(null);
-  const audioBufferRef = useRef(null);
   const tunerOscillatorRef = useRef(null);
   const tunerGainRef = useRef(null);
   const micStreamRef = useRef(null);
@@ -94,111 +92,13 @@ const TunerMetronome = () => {
   const detectorFrameRef = useRef(null);
   const detectorBufferRef = useRef(null);
 
-  // Metronome state refs
-  const bpmRef = useRef(bpm);
-  const nextNoteTimeRef = useRef(0);
-  const timerIDRef = useRef(null);
-
-  // Hold refs for continuous BPM adjustment
-  const holdIntervalRef = useRef(null);
-  const holdTimeoutRef = useRef(null);
-
-  const startBpmChange = (direction) => {
-    stopBpmChange();
-    setBpm((prev) => {
-      const next = prev + direction;
-      return Math.max(40, Math.min(240, next));
-    });
-
-    holdTimeoutRef.current = setTimeout(() => {
-      holdIntervalRef.current = setInterval(() => {
-        setBpm((prev) => {
-          const next = prev + direction;
-          return Math.max(40, Math.min(240, next));
-        });
-      }, 70);
-    }, 400);
-  };
-
-  const stopBpmChange = () => {
-    if (holdTimeoutRef.current) clearTimeout(holdTimeoutRef.current);
-    if (holdIntervalRef.current) clearInterval(holdIntervalRef.current);
-  };
-
-  useEffect(() => {
-    bpmRef.current = bpm;
-  }, [bpm]);
-
+  // The metronome moved out to PiccoloMetronome, which owns its own audio
+  // context; what stays here is the tuner's reference-pitch oscillator.
   const initAudio = async () => {
     if (!audioContextRef.current) {
       audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
     }
-    if (!audioBufferRef.current) {
-      try {
-        const response = await fetch('/metronome-click.wav');
-        const arrayBuffer = await response.arrayBuffer();
-        audioBufferRef.current = await audioContextRef.current.decodeAudioData(arrayBuffer);
-      } catch (e) {
-        console.error("Failed to load metronome sound", e);
-      }
-    }
   };
-
-  // --- METRONOME LOGIC ---
-  const scheduleNote = (time) => {
-    if (!audioContextRef.current || !audioBufferRef.current) return;
-    const source = audioContextRef.current.createBufferSource();
-    source.buffer = audioBufferRef.current;
-    
-    const gainNode = audioContextRef.current.createGain();
-    gainNode.gain.value = 1.5; // Hlasitý úder
-    
-    source.connect(gainNode);
-    gainNode.connect(audioContextRef.current.destination);
-
-    // Release both nodes once the click has played, otherwise hours of
-    // metronome use keep growing the audio graph.
-    source.onended = () => {
-      source.disconnect();
-      gainNode.disconnect();
-    };
-
-    source.start(time);
-  };
-
-  const scheduler = () => {
-    if (!audioContextRef.current) return;
-    while (nextNoteTimeRef.current < audioContextRef.current.currentTime + 0.1) {
-      scheduleNote(nextNoteTimeRef.current);
-      const secondsPerBeat = 60.0 / bpmRef.current;
-      nextNoteTimeRef.current += secondsPerBeat;
-    }
-    timerIDRef.current = window.setTimeout(scheduler, 25);
-  };
-
-  const toggleMetronome = async () => {
-    await initAudio();
-    if (isMetronomePlaying) {
-      window.clearTimeout(timerIDRef.current);
-      setIsMetronomePlaying(false);
-    } else {
-      if (audioContextRef.current.state === 'suspended') {
-        audioContextRef.current.resume();
-      }
-      nextNoteTimeRef.current = audioContextRef.current.currentTime + 0.05;
-      scheduler();
-      setIsMetronomePlaying(true);
-    }
-  };
-
-  // Stop metronome and clean up hold timers on unmount
-  useEffect(() => {
-    return () => {
-      if (timerIDRef.current) window.clearTimeout(timerIDRef.current);
-      if (holdTimeoutRef.current) clearTimeout(holdTimeoutRef.current);
-      if (holdIntervalRef.current) clearInterval(holdIntervalRef.current);
-    };
-  }, []);
 
   // --- TUNER LOGIC ---
   const stopTuner = () => {
@@ -377,60 +277,11 @@ const TunerMetronome = () => {
         : 'Sharp';
 
   return (
-    <div className="bg-surface-container rounded-2xl p-4 shadow-sm border border-outline-variant/30 flex flex-col gap-4 mt-4">
-      {/* Metronome Section */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between text-on-surface">
-          <span className="font-semibold text-sm flex items-center gap-1">
-            <Activity size={16} /> Metronome
-          </span>
-          <span className="text-xs tabular-nums bg-surface-variant px-2 py-1 rounded-lg">{bpm} BPM</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={toggleMetronome}
-            className={`w-10 h-10 flex items-center justify-center rounded-full flex-shrink-0 transition-colors ${isMetronomePlaying ? 'bg-error text-on-error' : 'bg-primary text-on-primary'}`}
-            title={isMetronomePlaying ? 'Zastavit metronom' : 'Spustit metronom'}
-          >
-            {isMetronomePlaying ? <Square size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
-          </button>
-          
-          <button
-            onPointerDown={() => startBpmChange(-1)}
-            onPointerUp={stopBpmChange}
-            onPointerLeave={stopBpmChange}
-            onPointerCancel={stopBpmChange}
-            className="w-10 h-10 rounded-lg bg-surface-variant hover:bg-surface-container-high active:scale-95 transition-all text-on-surface flex items-center justify-center flex-shrink-0 select-none touch-none"
-            title="Snížit tempo (přidržením plynule)"
-            aria-label="Snížit tempo"
-          >
-            <Minus size={16} />
-          </button>
-
-          <input
-            type="range"
-            min="40"
-            max="240"
-            value={bpm}
-            onChange={(e) => setBpm(parseInt(e.target.value, 10))}
-            className="flex-grow accent-primary cursor-pointer min-w-0"
-          />
-
-          <button
-            onPointerDown={() => startBpmChange(1)}
-            onPointerUp={stopBpmChange}
-            onPointerLeave={stopBpmChange}
-            onPointerCancel={stopBpmChange}
-            className="w-10 h-10 rounded-lg bg-surface-variant hover:bg-surface-container-high active:scale-95 transition-all text-on-surface flex items-center justify-center flex-shrink-0 select-none touch-none"
-            title="Zvýšit tempo (přidržením plynule)"
-            aria-label="Zvýšit tempo"
-          >
-            <Plus size={16} />
-          </button>
-        </div>
-      </div>
-
-      <hr className="border-outline-variant/30" />
+    <div className="flex flex-col gap-4 mt-4">
+      {/* The metronome is the Fortin Piccolo, ported whole from the standalone
+          app — the slider-and-two-buttons version that used to live here has
+          been replaced by it. */}
+      <PiccoloMetronome />
 
       {/* Tuner Section */}
       <div className="flex flex-col gap-2">

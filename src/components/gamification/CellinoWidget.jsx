@@ -12,11 +12,14 @@ export default function CellinoWidget({ mood, streak }) {
   return (
     <div className="flex items-center gap-4">
       <div className="relative shrink-0">
+        {/* Cut out of its paper, so Cellino stands in the room itself. The frame
+            it used to sit in bounced along with him, which looked like a picture
+            being shaken rather than a cello hopping. */}
         <img
           src={CELLINO[mood]}
           alt="Cellino the cello mascot"
-          className={`w-28 h-28 object-contain drop-shadow-md ${
-            mood === "cheering" ? "animate-bounce" : ""
+          className={`w-28 h-28 object-contain drop-shadow-[0_10px_14px_rgba(0,0,0,0.55)] ${
+            mood === "cheering" ? "gami-hop" : ""
           }`}
         />
         {streak > 0 && (
