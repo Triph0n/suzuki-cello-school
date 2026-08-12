@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { subscribeToStudents, subscribeToMaterials, addStudent, deleteStudent, updateStudentVideos, addMaterial, deleteMaterial, subscribeToAttendances, addAttendance, deleteAttendance, editAttendance, createStudentPortalLink, usesServerBackend } from "../api";
 import { Play, Headphones, FileText, UserPlus, Plus, Book, Trash2, Calendar, ChevronLeft, Edit2, ChevronDown, ChevronRight, Share2, Users } from "lucide-react";
 import { MEDIA_TABS, KIND_LABEL } from "../mediaCatalogue";
+import { copyToClipboard } from "../lib/clipboard";
 import Avatar from "../components/ui/Avatar";
 import EmptyState from "../components/ui/EmptyState";
 import useDialogs from "../components/ui/useDialogs";
@@ -120,8 +121,15 @@ export default function TeacherDashboard() {
   const handleShareStudentLink = async () => {
     const targetStudent = students.find(s => s.id === selectedStudentId);
     if (!targetStudent) return;
+
+    // Generating the link and copying it are separate failure modes. The app
+    // runs over plain HTTP on the VPS's bare IP, which is not a "secure
+    // context" — navigator.clipboard does not exist there, so a copy failure
+    // must never look like the link itself didn't get made. The token is
+    // real and already invalidated the previous one either way, so if copying
+    // fails the link is shown instead of silently lost.
+    let shareUrl;
     try {
-      let shareUrl;
       if (usesServerBackend()) {
         // Private tokenized link; generating a new one invalidates the old one.
         shareUrl = await createStudentPortalLink(targetStudent.id);
@@ -137,13 +145,17 @@ export default function TeacherDashboard() {
         const base64Data = btoa(binary);
         shareUrl = `${window.location.origin}/student/${targetStudent.id}?d=${encodeURIComponent(base64Data)}`;
       }
-
-      await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     } catch (e) {
       console.error(e);
-      await notice(`Failed to copy link: ${e.message}`, { title: "Copy failed", danger: true });
+      await notice(`Could not create the link: ${e.message}`, { title: "Link failed", danger: true });
+      return;
+    }
+
+    if (await copyToClipboard(shareUrl)) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } else {
+      await notice(shareUrl, { title: "Link ready — copy it manually" });
     }
   };
 

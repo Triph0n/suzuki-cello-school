@@ -16,7 +16,10 @@ export default function DialogBox({ dialog, onDone }) {
         {dialog.title && (
           <h2 className="font-headline text-xl font-bold text-on-background mb-2">{dialog.title}</h2>
         )}
-        <p className="text-on-surface-variant text-sm leading-relaxed whitespace-pre-line mb-6">{dialog.message}</p>
+        {/* break-all: a share link or token has no spaces to wrap on, so
+            without it long text is silently clipped by the panel's
+            overflow-hidden instead of wrapping onto the next line. */}
+        <p className="text-on-surface-variant text-sm leading-relaxed whitespace-pre-line break-all mb-6">{dialog.message}</p>
         <div className="flex gap-3 justify-center">
           {isConfirm && (
             <button
