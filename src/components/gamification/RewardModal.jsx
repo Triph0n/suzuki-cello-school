@@ -75,10 +75,14 @@ export default function RewardModal({ result, onClose, onClaimMemory }) {
         <h2 className="font-headline text-3xl font-bold text-primary mb-1">
           {result.chestOnly ? "Good morning!" : "Bravo!"}
         </h2>
+        {/* The necklace only counts days that reached the goal, so a short day
+            must not be announced as a pearl it did not earn. */}
         <p className="text-on-surface-variant font-medium mb-4">
           {result.chestOnly
             ? "Your chest waited all night. Let's see who is inside."
-            : `${result.minutes} min today — pearl #${result.streak} on your necklace 📿`}
+            : result.baton
+              ? `${result.minutes} min today — pearl #${result.streak} on your necklace 📿`
+              : `${result.minutes} min today — a good start.`}
         </p>
 
         {result.onTime && (

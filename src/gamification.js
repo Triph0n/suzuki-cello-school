@@ -178,8 +178,6 @@ export const MAX_CHESTS_PER_DAY = 1;
 // step that actually turns practice into music, and it cannot be farmed by
 // restarting a timer.
 export const MAX_MEMORY_CHESTS_PER_DAY = 1;
-export const FREEZE_GRANT_DAYS = 14;
-export const MAX_FREEZES = 2;
 
 // Bumped when the shape of the saved state changes. Schema 1 kept a single
 // global collection, which is what let one animal appear unlocked in every
@@ -211,8 +209,6 @@ const defaultState = () => ({
   bandStickers: {},
   bandInstruments: {},
   notes: 0,
-  freezes: 1,
-  lastFreezeGrant: dateKey(),
   chestsToday: { date: dateKey(), count: 0 },
   memoryToday: { date: dateKey(), count: 0 },
   // Chests earned today, still sealed. They open tomorrow — see openChest.
@@ -360,6 +356,11 @@ const repairState = (state) => {
       ...(chest.source ? { source: chest.source } : {})
     }));
 
+  // The magic rosin is gone; drop its leftovers so old saves stop carrying
+  // state nothing reads any more.
+  delete state.freezes;
+  delete state.lastFreezeGrant;
+
   const today = dateKey();
   const memory = state.memoryToday;
   state.memoryToday =
@@ -430,22 +431,23 @@ export const minutesOnDay = (state, key) =>
 export const hasBaton = (state, key) =>
   minutesOnDay(state, key) >= state.dailyTargetMin * 0.75;
 
-// Streak = consecutive practice days ending today (or yesterday, so the
-// streak isn't shown as broken before today's practice happened). Up to
-// `freezes` single-day gaps are bridged instead of breaking the chain.
+// Streak = consecutive days that reached the daily goal, ending today (or
+// yesterday, so the necklace isn't shown as broken before today's practice has
+// happened).
+//
+// This is deliberately the same rule the chest uses, counted the same way.
+// There used to be a "magic rosin" that bridged one missed day here but not
+// there, so the necklace could show an unbroken run on a morning when no card
+// arrived — the app claiming success and withholding the reward in the same
+// breath. One rule, and the necklace, the week of pearls and the chest now all
+// tell the child the same thing.
 export const getStreak = (state) => {
   const today = dateKey();
-  let cursor = minutesOnDay(state, today) > 0 ? today : shiftDateKey(today, -1);
+  let cursor = hasBaton(state, today) ? today : shiftDateKey(today, -1);
   let streak = 0;
-  let freezesLeft = state.freezes;
   for (let i = 0; i < 730; i++) {
-    if (minutesOnDay(state, cursor) > 0) {
-      streak += 1;
-    } else if (streak > 0 && freezesLeft > 0 && minutesOnDay(state, shiftDateKey(cursor, -1)) > 0) {
-      freezesLeft -= 1; // magic rosin bridges a single missed day
-    } else {
-      break;
-    }
+    if (!hasBaton(state, cursor)) break;
+    streak += 1;
     cursor = shiftDateKey(cursor, -1);
   }
   return streak;
@@ -899,14 +901,6 @@ export const finishSession = (studentId, seconds) => {
   const onTime = isAtUsualTime(state);
   state.sessions.push({ date: today, minutes, at: new Date().toISOString() });
   state.notes = (state.notes || 0) + 1;
-
-  // Earn a streak freeze ("magic rosin") every two weeks of use.
-  const graceAge =
-    (new Date(today) - new Date(state.lastFreezeGrant || today)) / 86400000;
-  if (graceAge >= FREEZE_GRANT_DAYS && state.freezes < MAX_FREEZES) {
-    state.freezes += 1;
-    state.lastFreezeGrant = today;
-  }
 
   // The chest is earned now but stays sealed until tomorrow (see openChest).
   // Capped per day so restarting the timer over and over doesn't farm chests.

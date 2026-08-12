@@ -28,6 +28,7 @@ import {
   getOpenableChests,
   getSealedChests,
   canClaimMemoryPlay,
+  dayEarnsChest,
   getUsualStartMinute,
   isAtUsualTime,
   logMemoryPlay,
@@ -100,8 +101,9 @@ describe("daily target", () => {
 });
 
 describe("getStreak", () => {
-  it("counts consecutive practice days ending today", () => {
+  it("counts consecutive days that reached the daily goal", () => {
     seedState({
+      dailyTargetMin: 10,
       sessions: [0, 1, 2].map((n) => ({ date: daysAgo(n), minutes: 10 }))
     });
     expect(getStreak(getGamifyState(STUDENT))).toBe(3);
@@ -109,25 +111,54 @@ describe("getStreak", () => {
 
   it("does not break the streak before today's practice happened", () => {
     seedState({
+      dailyTargetMin: 10,
       sessions: [1, 2].map((n) => ({ date: daysAgo(n), minutes: 10 }))
     });
     expect(getStreak(getGamifyState(STUDENT))).toBe(2);
   });
 
-  it("bridges a single missed day with a freeze", () => {
+  it("does not count a day that fell short of the goal", () => {
     seedState({
-      freezes: 1,
-      sessions: [0, 2, 3].map((n) => ({ date: daysAgo(n), minutes: 10 }))
+      dailyTargetMin: 20,
+      sessions: [
+        { date: daysAgo(0), minutes: 20 },
+        { date: daysAgo(1), minutes: 4 },
+        { date: daysAgo(2), minutes: 20 }
+      ]
     });
-    expect(getStreak(getGamifyState(STUDENT))).toBe(3);
+    expect(getStreak(getGamifyState(STUDENT))).toBe(1);
   });
 
-  it("breaks without a freeze", () => {
+  // The magic rosin used to bridge one gap here while the chest rule still
+  // treated it as broken, so the necklace and the reward disagreed.
+  it("breaks on a missed day — nothing bridges it any more", () => {
     seedState({
-      freezes: 0,
+      dailyTargetMin: 10,
       sessions: [0, 2, 3].map((n) => ({ date: daysAgo(n), minutes: 10 }))
     });
     expect(getStreak(getGamifyState(STUDENT))).toBe(1);
+  });
+
+  it("agrees with the chest rule on the same history", () => {
+    // Practised the day before yesterday, missed yesterday, practised today:
+    // the run is back to 1 and today pays nothing — one story, not two.
+    seedState({
+      dailyTargetMin: 10,
+      sessions: [
+        { date: daysAgo(0), minutes: 10 },
+        { date: daysAgo(2), minutes: 10 }
+      ]
+    });
+    const state = getGamifyState(STUDENT);
+    expect(getStreak(state)).toBe(1);
+    expect(dayEarnsChest(state)).toBe(false);
+  });
+
+  it("forgets the magic rosin left in an older save", () => {
+    seedState({ freezes: 2, lastFreezeGrant: daysAgo(3) });
+    const state = getGamifyState(STUDENT);
+    expect(state.freezes).toBeUndefined();
+    expect(state.lastFreezeGrant).toBeUndefined();
   });
 });
 

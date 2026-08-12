@@ -67,6 +67,12 @@ over 21 days) and praised, never required. Habits are built by a stable cue.
 **Golden week** needs no separate bonus any more: five full pearls means five
 qualifying days, which is five chests.
 
+**One rule, everywhere.** `getStreak` counts the same thing the chest does —
+consecutive days that reached the goal. There used to be a "magic rosin" that
+bridged one missed day for the necklace but not for the chest, so the app could
+show an unbroken run on a morning when no card arrived. The rosin is gone; the
+necklace, the week of pearls and the chest now tell the child the same story.
+
 ## Design: Club 1920
 
 The whole app wears the style described in the `club-1920` skill, taken from the
@@ -129,9 +135,6 @@ Traps that have already been paid for — do not re-learn them:
 
 ## Open questions waiting on a decision
 
-- **Magic rosin vs chests.** The streak necklace still bridges one missed day,
-  so the pearls can show an unbroken run while the chests are paused. Unify it:
-  either drop the bridge or let it count for chests too.
 - **The sidebar** still offers the tuner, the metronome and "Teacher Mode" to a
   child behind the hamburger. Hide it for students with the same flag?
 - **Teacher-side awarding** (`MusicianAwarder`) writes to the teacher's own
