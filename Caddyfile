@@ -19,3 +19,23 @@
     reverse_proxy app:3000
   }
 }
+
+# --- Marketeer (dashboard + Rekordér) ----------------------------------------
+# POZOR: tento blok sem patří! Deploy Suzuki (ops/deploy-vps.ps1) přepisuje
+# celý /opt/suzuki-cello-school včetně Caddyfile — Marketeer sdílí toto Caddy
+# (jediný držitel portů 80/443 na VPS). Kanonická kopie: Marketeer/deploy/Caddyfile.
+marketeer.144-24-244-244.sslip.io {
+	encode zstd gzip
+
+	@verejne path /rec/* /api/upload /api/finish /api/prehled /health /a/*
+	handle @verejne {
+		reverse_proxy marketeer:8000
+	}
+
+	handle {
+		basic_auth {
+			vladimir $2a$14$sDp5g3vaQyM4T99ODo.nv.D69V6elk4M4FwXBw17rmU78nLWZr0hi
+		}
+		reverse_proxy marketeer:8000
+	}
+}
