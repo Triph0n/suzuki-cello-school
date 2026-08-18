@@ -13,6 +13,7 @@ import AddMaterialModal from "../components/teacher/AddMaterialModal";
 import DatabaseCard from "../components/teacher/DatabaseCard";
 import MusicianAwarder from "../components/teacher/MusicianAwarder";
 import PracticeGoal from "../components/teacher/PracticeGoal";
+import { FEATURES } from "../features";
 
 export default function TeacherDashboard() {
   const [students, setStudents] = useState([]);
@@ -337,8 +338,12 @@ export default function TeacherDashboard() {
                 </div>
              </div>
 
-             <PracticeGoal key={`goal-${selectedStudentId}`} studentId={selectedStudentId} />
-             <MusicianAwarder key={selectedStudentId} studentId={selectedStudentId} />
+             {FEATURES.gamification && (
+               <>
+                 <PracticeGoal key={`goal-${selectedStudentId}`} studentId={selectedStudentId} />
+                 <MusicianAwarder key={selectedStudentId} studentId={selectedStudentId} />
+               </>
+             )}
           </div>
         </div>
       ) : (

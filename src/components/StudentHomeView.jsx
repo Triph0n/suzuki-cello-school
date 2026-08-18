@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Play, Headphones, FileText, Music, Calendar } from "lucide-react";
 import { allMediaFiles } from "../mediaConfig";
+import { FEATURES } from "../features";
 import GamificationPanel from "./gamification/GamificationPanel";
 import MediaOverlay from "./MediaOverlay";
 import EmptyState from "./ui/EmptyState";
@@ -71,11 +72,13 @@ export default function StudentHomeView({ student, lessonNotes }) {
       </section>
 
       {/* ── bottom half: the practice itself ───────────────────────── */}
-      <GamificationPanel
-        key={student.id}
-        studentId={student.id}
-        mediaActive={!!playingVideo}
-      />
+      {FEATURES.gamification && (
+        <GamificationPanel
+          key={student.id}
+          studentId={student.id}
+          mediaActive={!!playingVideo}
+        />
+      )}
 
       {/* For the grown-up reading over the child's shoulder. */}
       {lessonNotes && lessonNotes.length > 0 && (

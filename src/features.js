@@ -14,5 +14,12 @@ export const FEATURES = {
   // child's screen is one button, the pearls, and the video the teacher set.
   // Cards still arrive and are still collected; there is simply nowhere to go
   // browsing. Turn this on if practice stalls and the collection needs to pull.
-  collectionScreen: false
+  collectionScreen: false,
+
+  // The whole reward loop: Cellino, the practice timer, pearls, chests and the
+  // teacher's goal/awarding panels. Off for the simple version — the app is
+  // just the assigned videos and audio plus the tuner and metronome. The
+  // engine and its localStorage state stay intact; flip this back to true and
+  // everything returns with its data.
+  gamification: false
 };
