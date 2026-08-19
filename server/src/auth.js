@@ -8,7 +8,10 @@ const COOKIE_NAME = "suzuki_session";
 const HASH_ALGORITHM = "sha256";
 const HASH_ITERATIONS = 600000;
 const HASH_KEY_LENGTH = 32;
-const SESSION_DAYS = 14;
+// A year: the teacher signs in once per device and the desktop shortcut
+// then opens the dashboard with no login screen. This is a single-teacher
+// app on a private link — convenience wins over session hygiene here.
+const SESSION_DAYS = 365;
 
 export function getSessionSecret() {
   const secret = process.env.SESSION_SECRET;

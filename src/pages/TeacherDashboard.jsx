@@ -11,6 +11,7 @@ import AssignmentModal from "../components/teacher/AssignmentModal";
 import AddStudentModal from "../components/teacher/AddStudentModal";
 import AddMaterialModal from "../components/teacher/AddMaterialModal";
 import DatabaseCard from "../components/teacher/DatabaseCard";
+import ShareLinkModal from "../components/teacher/ShareLinkModal";
 import MusicianAwarder from "../components/teacher/MusicianAwarder";
 import PracticeGoal from "../components/teacher/PracticeGoal";
 import { FEATURES } from "../features";
@@ -22,6 +23,7 @@ export default function TeacherDashboard() {
 
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [shareModal, setShareModal] = useState(null); // null | { url, copied }
 
   // Track which attendance records are expanded
   const [expandedRecords, setExpandedRecords] = useState({});
@@ -152,12 +154,14 @@ export default function TeacherDashboard() {
       return;
     }
 
-    if (await copyToClipboard(shareUrl)) {
+    const copiedOk = await copyToClipboard(shareUrl);
+    if (copiedOk) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } else {
-      await notice(shareUrl, { title: "Link ready — copy it manually" });
     }
+    // The modal shows the QR code and the link either way, so a clipboard
+    // failure no longer needs its own dialog.
+    setShareModal({ url: shareUrl, copied: copiedOk });
   };
 
   const selectedStudent = students.find(s => s.id === selectedStudentId);
@@ -455,6 +459,15 @@ export default function TeacherDashboard() {
           {/* Database Management Card */}
           <DatabaseCard />
         </div>
+      )}
+
+      {shareModal && (
+        <ShareLinkModal
+          studentName={selectedStudent?.name || ""}
+          url={shareModal.url}
+          copied={shareModal.copied}
+          onClose={() => setShareModal(null)}
+        />
       )}
 
       {attendanceModal && (

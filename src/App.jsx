@@ -33,6 +33,10 @@ const Layout = ({ children }) => {
     navigate("/");
   };
 
+  // A child on the private portal link must not see a way into Teacher Mode:
+  // that path is how a student device ended up signed out and locked out.
+  const isStudentPortal = location.pathname.startsWith('/portal');
+
   const isTeacherMode = location.pathname.startsWith('/teacher') ||
                         location.pathname.startsWith('/books') ||
                         location.pathname.startsWith('/pre-twinkle') ||
@@ -107,6 +111,7 @@ const Layout = ({ children }) => {
           </Suspense>
         </div>
 
+        {!isStudentPortal && (
         <div className="mt-8 pt-4 border-t border-outline-variant/30">
           <NavLink to="/teacher" icon={<Settings size={20} />} label="Teacher Mode" />
           {isTeacherMode && usesServerBackend() && (
@@ -121,6 +126,7 @@ const Layout = ({ children }) => {
             </button>
           )}
         </div>
+        )}
       </nav>
 
       {/* Main Content Area */}

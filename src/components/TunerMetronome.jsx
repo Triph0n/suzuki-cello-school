@@ -278,12 +278,8 @@ const TunerMetronome = () => {
 
   return (
     <div className="flex flex-col gap-4 mt-4">
-      {/* The metronome is the Fortin Piccolo, ported whole from the standalone
-          app — the slider-and-two-buttons version that used to live here has
-          been replaced by it. */}
-      <PiccoloMetronome />
-
-      {/* Tuner Section */}
+      {/* Tuner Section — first, above the metronome: tuning happens at the
+          start of every practice, the metronome only sometimes. */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between text-on-surface">
           <span className="font-semibold text-sm flex items-center gap-1">
@@ -350,6 +346,11 @@ const TunerMetronome = () => {
           ))}
         </div>
       </div>
+
+      {/* The metronome is the Fortin Piccolo, ported whole from the standalone
+          app — the slider-and-two-buttons version that used to live here has
+          been replaced by it. */}
+      <PiccoloMetronome />
     </div>
   );
 };
