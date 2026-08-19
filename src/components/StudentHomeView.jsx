@@ -21,7 +21,8 @@ const ICONS = { book: FileText, audio: Headphones, video: Play };
 // and only the portal passes it.
 //
 // The screen is deliberately two halves and nothing else. Top: what the teacher
-// set, one row per item, tap to play. Bottom: the cello asking to be played and
+// set — a compact grid, two tiles to a row, so twenty assignments fit on a
+// phone without much scrolling. Bottom: the cello asking to be played and
 // the week of pearls filling up. No collection to browse, no counters, no tabs
 // — a child who opens this has two things they can do, and both of them are
 // practising.
@@ -39,29 +40,26 @@ export default function StudentHomeView({ student, lessonNotes }) {
       <section className="flex flex-col gap-3">
         <p className="club-plate text-[11px]">Today&apos;s lesson</p>
         {assignments.length > 0 ? (
-          assignments.map((video, index) => {
-            const Icon = ICONS[video.type] || Play;
-            return (
-              <button
-                key={`${video.videoId}-${index}`}
-                type="button"
-                onClick={() => setPlayingVideo(video)}
-                className="club-leather w-full rounded-3xl p-5 flex items-center gap-4 text-left cursor-pointer transition-transform hover:scale-[1.01] active:scale-[0.99]"
-              >
-                <span className="club-brass w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center">
-                  <Icon size={26} className={video.type === "video" ? "ml-1" : ""} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="font-headline text-xl font-bold text-on-background block truncate">
+          <div className="grid grid-cols-2 gap-2 md:gap-3">
+            {assignments.map((video, index) => {
+              const Icon = ICONS[video.type] || Play;
+              return (
+                <button
+                  key={`${video.videoId}-${index}`}
+                  type="button"
+                  onClick={() => setPlayingVideo(video)}
+                  className="club-leather rounded-2xl p-3 md:p-4 flex items-center gap-2.5 text-left cursor-pointer transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                >
+                  <span className="club-brass w-9 h-9 md:w-10 md:h-10 shrink-0 rounded-xl flex items-center justify-center">
+                    <Icon size={18} className={video.type === "video" ? "ml-0.5" : ""} />
+                  </span>
+                  <span className="font-headline text-sm md:text-base font-bold text-on-background leading-snug line-clamp-2 min-w-0 flex-1">
                     {video.title}
                   </span>
-                  <span className="text-sm text-on-surface-variant">
-                    {video.type === "book" ? "Tap to open" : "Tap to play"}
-                  </span>
-                </span>
-              </button>
-            );
-          })
+                </button>
+              );
+            })}
+          </div>
         ) : (
           <EmptyState
             icon={Music}
